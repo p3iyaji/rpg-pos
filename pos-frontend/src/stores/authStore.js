@@ -16,14 +16,26 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   const register = async (credentials) => {
-    await this.getToken();
+    await getToken();
+    isLoading.value = true;
     try {
       await axios.post('/api/register', credentials);
-      await getUser();
-      router.push('/dashboard');
+
+      errorMessage.value = {};
+      isLoading.value = false;
+
     } catch (error) {
+      isLoading.value = false;
+
       if (error instanceof AxiosError && error.response?.status === 422) {
-        //
+        const errors = error.response.data.errors;
+        if (Array.isArray(errors)) {
+          errorMessage.value = { general: errors }
+        } else {
+          errorMessage.value = errors;
+        }
+      } else {
+        errorMessage.value = { general: ['Registration failed. Please try again later'] };
       }
     }
 
@@ -67,6 +79,9 @@ export const useAuthStore = defineStore('auth', () => {
       isAuthenticated.value = true;
     } catch (error) {
       console.error(error);
+      isLoading.value = false;
+      isAuthenticated.value = false;
+      user.value = null;
     }
   }
 

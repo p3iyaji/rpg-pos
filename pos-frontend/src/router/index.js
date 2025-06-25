@@ -4,20 +4,19 @@ import Register from '@/views/Auth/Register.vue';
 import Dashboard from '@/views/Dashboard.vue'
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
+import Products from '@/views/products/Products.vue';
 
 const routes = [
     {
         path: '/',
         name: 'home',
         component: Home,
-
     },
     {
         path: '/dashboard',
         name: 'dashboard',
         component: Dashboard,
         meta: { requiresAuth: true },
-
     },
     {
         path: '/login',
@@ -31,6 +30,22 @@ const routes = [
         component: Register,
         meta: { requiresGuest: true },
     },
+    {
+        path: '/404',
+        name: '404',
+        component: () => import('../views/errors/404.vue')
+    },
+    {
+        path: '/500',
+        name: '500',
+        component: () => import('../views/errors/500.vue')
+    },
+    {
+        path: '/products',
+        name: 'products',
+        component: Products,
+        meta: { requiresAuth: true }
+    }
 
 
 ];
