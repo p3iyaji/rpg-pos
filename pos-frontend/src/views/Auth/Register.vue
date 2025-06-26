@@ -97,7 +97,7 @@ const handleRegister = async () => {
                     <button type="submit" :disabled="authStore.isLoading"
                         class="flex w-full justify-center rounded-md bg-teal-600 px-3 py-1.5 text-sm/6 font-semibold text-white shadow-xs hover:bg-indigo-500 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600">
                         <span v-if="!authStore.isLoading">Register</span>
-                        <span v-else>Logging in...</span>
+                        <span v-else>Creating...</span>
                     </button>
                 </div>
             </form>

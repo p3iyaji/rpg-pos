@@ -3,6 +3,7 @@ import { RouterView, useRoute } from 'vue-router';
 import { onMounted, watch } from 'vue';
 import { initFlowbite } from 'flowbite'
 
+
 const route = useRoute();
 
 //re-run flowbite init after each route change

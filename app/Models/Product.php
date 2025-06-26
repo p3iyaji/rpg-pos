@@ -14,16 +14,14 @@ class Product extends Model
     protected $fillable = [
         'name',
         'slug',
-        'sku',
         'barcode',
         'description',
-        'brand_id',
+        'image',
+        'unit_id',
+        'category_id',
         'price',
         'cost_price',
-        'discounted_price',
         'quantity',
-        'low_stock_threshold',
-        'is_taxable',
         'is_active',
     ];
 
@@ -62,9 +60,14 @@ class Product extends Model
     /**
      * Get the brand associated with the product.
      */
-    public function brand()
+    public function unit()
     {
-        return $this->belongsTo(Brand::class);
+        return $this->belongsTo(Unit::class);
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
     }
 
     /**

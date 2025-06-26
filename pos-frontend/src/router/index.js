@@ -2,9 +2,17 @@ import Home from '@/views/Home.vue';
 import Login from '@/views/Auth/Login.vue';
 import Register from '@/views/Auth/Register.vue';
 import Dashboard from '@/views/Dashboard.vue'
+import UnitList from '@/views/units/UnitList.vue';
+import AddUnit from '@/views/units/AddUnit.vue';
+
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import Products from '@/views/products/Products.vue';
+import UpdateUnit from '@/views/units/UpdateUnit.vue';
+import CategoryList from '@/views/categories/CategoryList.vue';
+import UpdateCategory from '@/views/categories/UpdateCategory.vue';
+import AddCategory from '@/views/categories/AddCategory.vue';
+
 
 const routes = [
     {
@@ -45,6 +53,40 @@ const routes = [
         name: 'products',
         component: Products,
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/units',
+        name: 'units',
+        component: UnitList,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/add-unit',
+        name: 'add-unit',
+        component: AddUnit,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/units/:id/edit',
+        name: 'update-unit',
+        component: UpdateUnit
+    },
+    {
+        path: '/categories',
+        name: 'categories',
+        component: CategoryList,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/add-category',
+        name: 'add-category',
+        component: AddCategory,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/categories/:id/edit',
+        name: 'update-category',
+        component: UpdateCategory
     }
 
 

@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Category;
+use App\Models\Unit;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
-class CategoryController extends Controller
+
+class UnitController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-        return Category::paginate(10);
+        return Unit::paginate(10);
     }
-
 
     /**
      * Store a newly created resource in storage.
@@ -26,16 +26,17 @@ class CategoryController extends Controller
             'name' => 'required|string|max:255',
             'description' => 'nullable'
         ]);
+
         if ($validated) {
-            $category = Category::create([
-                'name' => $request->name,
-                'slug' => Str::slug($request->name),
-                'description' => $request->description,
+            $unit = Unit::create([
+                'name' => $request['name'],
+                'slug' => Str::slug($request['name']),
+                'description' => $request['description'],
             ]);
 
             return response()->json([
-                'message' => 'Category created successfully',
-                'category' => $category,
+                'message' => 'Unit created successfully',
+                'unit' => $unit,
             ], 201);
         }
     }
@@ -43,35 +44,36 @@ class CategoryController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show(Unit $unit)
     {
-        return response()->json($category);
+        return response()->json($unit);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request, Unit $unit)
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable'
+            'description' => 'nullable|string'
         ]);
-        $category->update($validated);
-        return response()->json($category);
+
+        $unit->update($validated);
+
+        return response()->json($unit);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy(Unit $unit)
     {
         try {
-            $category->delete();
-            return response()->json(['message' => 'Category deleted successfully']);
-
+            $unit->delete();
+            return response()->json(['message' => 'Unit deleted successfully']);
         } catch (\Exception $e) {
-            return response()->json(['message' => 'Failed to delete category'], 500);
+            return response()->json(['message' => 'Failed to delete unit'], 500);
         }
     }
 }

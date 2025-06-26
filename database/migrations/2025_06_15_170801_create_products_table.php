@@ -14,21 +14,20 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('slug');
-            $table->string('sku')->unique;
             $table->string('barcode')->nullable()->unique();
-            $table->text('description')->nullable();
-            $table->unsignedBigInteger('brand_id')->nullable();
-            $table->decimal('price', 10, 2);
-            $table->decimal('cost_price', 10, 2)->nullable();
-            $table->decimal('discounted_price', 10, 2)->nullable();
+            $table->longText('description')->nullable();
+            $table->string('image')->nullable();
+            $table->unsignedBigInteger('unit_id')->nullable();
+            $table->unsignedBigInteger('category_id')->nullable();
+            $table->decimal('price', 8, 2);
+            $table->decimal('cost_price', 8, 2)->nullable();
             $table->integer('quantity')->default(0);
-            $table->integer('low_stock_threshold')->default(5);
-            $table->boolean('is_taxable')->default(false);
             $table->boolean('is_active')->default(true);
             $table->timestamps();
             $table->softDeletes();
 
-            $table->foreign('brand_id')->references('id')->on('brands');
+            $table->foreign('unit_id')->references('id')->on('units');
+            $table->foreign('category_id')->references('id')->on('categories');
 
         });
     }
