@@ -19,6 +19,7 @@ return new class extends Migration {
             $table->string('image')->nullable();
             $table->unsignedBigInteger('unit_id')->nullable();
             $table->unsignedBigInteger('category_id')->nullable();
+            $table->unsignedBigInteger('user_id')->nullable();
             $table->decimal('price', 8, 2);
             $table->decimal('cost_price', 8, 2)->nullable();
             $table->integer('quantity')->default(0);
@@ -27,7 +28,8 @@ return new class extends Migration {
             $table->softDeletes();
 
             $table->foreign('unit_id')->references('id')->on('units');
-            $table->foreign('category_id')->references('id')->on('categories');
+            $table->foreign(columns: 'category_id')->references('id')->on('categories');
+            $table->foreign(columns: 'user_id')->references('id')->on('users');
 
         });
     }

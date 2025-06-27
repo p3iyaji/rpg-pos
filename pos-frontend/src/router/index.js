@@ -7,11 +7,13 @@ import AddUnit from '@/views/units/AddUnit.vue';
 
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
-import Products from '@/views/products/Products.vue';
+import ProductList from '@/views/products/ProductList.vue';
 import UpdateUnit from '@/views/units/UpdateUnit.vue';
 import CategoryList from '@/views/categories/CategoryList.vue';
 import UpdateCategory from '@/views/categories/UpdateCategory.vue';
 import AddCategory from '@/views/categories/AddCategory.vue';
+import Addproduct from '@/views/products/Addproduct.vue';
+import UpdateProduct from '@/views/products/UpdateProduct.vue';
 
 
 const routes = [
@@ -51,8 +53,19 @@ const routes = [
     {
         path: '/products',
         name: 'products',
-        component: Products,
+        component: ProductList,
         meta: { requiresAuth: true }
+    },
+    {
+        path: '/add-product',
+        name: 'add-product',
+        component: Addproduct,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/product/:id/edit',
+        name: 'upddate-product',
+        component: UpdateProduct
     },
     {
         path: '/units',
