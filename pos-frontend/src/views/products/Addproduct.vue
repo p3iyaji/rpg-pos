@@ -1,14 +1,39 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
+import '@vueform/multiselect/themes/default.css'
+import Multiselect from '@vueform/multiselect'
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useProductStore } from '@/stores/productStore';
-import { ref } from 'vue';
+import { ref, nextTick, onMounted, computed } from 'vue';
 import Swal from 'sweetalert2';
+import JsBarcode from 'jsbarcode';
+import { useUnitStore } from '@/stores/unitStore';
+import { useCategoryStore } from '@/stores/categoryStore';
+
 
 const authStore = useAuthStore();
-const unitStore = useProductStore();
+const unitStore = useUnitStore();
+const categoryStore = useCategoryStore();
+const productStore = useProductStore();
 const router = useRouter();
+
+onMounted(async () => {
+    try {
+        await unitStore.fetchUnits();
+        await categoryStore.fetchCategories();
+    } catch (error) {
+        console.error('Error fetching data', error);
+    }
+})
+
+const unitOptions = computed(() =>
+    Array.isArray(unitStore.units) ? unitStore.units.map(u => ({ id: u.id, name: u.name })) : []
+)
+
+const categoryOptions = computed(() =>
+    Array.isArray(categoryStore.categories) ? categoryStore.categories.map(c => ({ id: c.id, name: c.name })) : []
+)
 
 const form = ref({
     name: '',
@@ -24,6 +49,52 @@ const form = ref({
 
 
 });
+const generateBarcode = async () => {
+    try {
+        // Generate random 12 digits for EAN-13
+        let randomPart = '';
+        for (let i = 0; i < 12; i++) {
+            randomPart += Math.floor(Math.random() * 10);
+        }
+
+        form.value.barcode = randomPart;
+
+        // Wait for next tick to ensure DOM is updated
+        await nextTick();
+        renderBarcode();
+
+    } catch (error) {
+        console.error('Error generating barcode:', error);
+        form.value.barcode = Math.floor(1000000000000 + Math.random() * 9000000000000).toString();
+    }
+};
+
+const renderBarcode = () => {
+    const svgElement = document.getElementById('barcode-svg');
+
+    if (!svgElement) {
+        console.error('SVG element not found');
+        return;
+    }
+
+    try {
+        // Clear previous barcode
+        svgElement.innerHTML = '';
+
+        JsBarcode(svgElement, form.value.barcode, {
+            format: 'EAN13',
+            lineColor: '#000',
+            width: 2,
+            height: 60,
+            displayValue: true,
+            margin: 10
+        });
+    } catch (error) {
+        console.error('Error rendering barcode:', error);
+    }
+};
+
+
 
 // image handling
 const fileInput = ref(null);
@@ -35,7 +106,7 @@ const handleFileChange = (e) => {
     if (!file) return;
 
     // Set form data (assuming your form has an 'image' field)
-    form.image = file;
+    form.value.image = file;
 
     // Create preview
     previewImage.value = {
@@ -61,21 +132,23 @@ const deleteImage = () => {
     // You would typically also make an API call to delete from server
 };
 
-const addUnit = async () => {
+const addProduct = async () => {
     try {
-        const newProduct = await productStore.createProduct({
-            name: form.value.name,
-            barcode: form.value.barcode,
-            description: form.value.description,
-            image: form.value.image,
-            unit_id: form.value.unit_id,
-            category_id: form.value.category_id,
-            price: form.value.price,
-            cost_price: form.value.cost_price,
-            quantity: form.value.quantity,
-            is_active: form.value.is_active
-        });
+        const formData = new FormData();
+        formData.append('name', form.value.name);
+        formData.append('barcode', form.value.barcode);
+        formData.append('description', form.value.description);
+        if (form.value.image) {
+            formData.append('image', form.value.image);
+        }
+        formData.append('unit_id', form.value.unit_id);
+        formData.append('category_id', form.value.category_id);
+        formData.append('price', form.value.price);
+        formData.append('cost_price', form.value.cost_price);
+        formData.append('quantity', form.value.quantity);
+        formData.append('is_active', form.value.is_active ? 1 : 0);
 
+        const newProduct = await productStore.createProduct(formData);
 
         Swal.fire({
             toast: true,
@@ -85,10 +158,12 @@ const addUnit = async () => {
             timer: 3000,
             title: 'Product created successfully!',
         });
-        router.push('/units');
+        router.push('/products');
 
 
     } catch (err) {
+        console.error('Error creating product:', err);
+
         Swal.fire({
             toast: true,
             icon: 'error',
@@ -139,7 +214,44 @@ const goBack = () => {
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     placeholder="Enter unit name" required>
                             </div>
+                            <div>
+                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    Unit
+                                </label>
+                                <Multiselect v-model="form.unit_id" id="unit_id" :options="unitOptions" label="name"
+                                    valueProp="id" :searchable="true" placeholder="Select a unit" :filterResults="true"
+                                    :minChars="1" :resolveOnLoad="true" trackBy="name" />
+                            </div>
+                            <div>
+                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    Category
+                                </label>
+                                <Multiselect v-model="form.category_id" id="category_id" :options="categoryOptions"
+                                    label="name" valueProp="id" :searchable="true" placeholder="Select a category"
+                                    :filterResults="true" :minChars="1" :resolveOnLoad="true" trackBy="name" />
+                            </div>
+                            <div>
+                                <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    Barcode
+                                </label>
+                                <div class="flex gap-2">
 
+                                    <input v-model="form.barcode" type="text" id="barcode"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                        placeholder="Scan or enter barcode">
+                                    <button @click="generateBarcode" type="button"
+                                        class="px-6 py-2 mt-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200">
+                                        Generate
+                                    </button>
+                                </div>
+                                <!-- Barcode display (always rendered but hidden when empty) -->
+                                <div class="mt-4">
+                                    <svg id="barcode-svg" v-show="form.barcode" class="w-full h-16"></svg>
+                                    <p v-if="form.barcode" class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                                        Generated EAN-13: {{ form.barcode }}
+                                    </p>
+                                </div>
+                            </div>
                             <!-- image handling -->
                             <div>
                                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -194,15 +306,53 @@ const goBack = () => {
                                 </label>
                                 <textarea v-model="form.description" id="description" rows="6"
                                     class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                                    placeholder="Enter unit description"></textarea>
+                                    placeholder="Enter product description"></textarea>
+                            </div>
+                            <!-- Price and Cost Price -->
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <label for="price"
+                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                        Selling Price
+                                    </label>
+                                    <input v-model="form.price" type="number" id="price" min="0" step="0.01" required
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                </div>
+                                <div>
+                                    <label for="cost_price"
+                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                        Cost Price
+                                    </label>
+                                    <input v-model="form.cost_price" type="number" id="cost_price" min="0" step="0.01"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                </div>
                             </div>
 
+                            <!-- Quantity -->
+                            <div>
+                                <label for="quantity"
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    Quantity
+                                </label>
+                                <input v-model="form.quantity" type="number" id="quantity" min="0" required
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            </div>
+
+                            <!-- Active Status -->
+                            <div class="flex items-center">
+                                <input v-model="form.is_active" type="checkbox" id="is_active"
+                                    class="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="is_active"
+                                    class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                    Active
+                                </label>
+                            </div>
                             <!-- Submit Button -->
                             <div class="flex justify-end pt-4">
                                 <button type="submit" :disabled="authStore.isLoading"
                                     class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200"
                                     :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }">
-                                    <span v-if="!authStore.isLoading">Create Unit</span>
+                                    <span v-if="!authStore.isLoading">Create Product</span>
                                     <span v-else class="flex items-center">
                                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

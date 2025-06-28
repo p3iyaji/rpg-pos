@@ -33,7 +33,11 @@ export const useProductStore = defineStore('product', () => {
     const createProduct = async (productData) => {
         try {
             isLoading.value = true;
-            const response = await axios.post('/api/products', productData);
+            const response = await axios.post('/api/products', productData, {
+                headers: {
+                    'Content-Type': 'multipart/form-data'
+                }
+            });
             products.value.push(response.data.product)
             return response.data;
         } catch (err) {

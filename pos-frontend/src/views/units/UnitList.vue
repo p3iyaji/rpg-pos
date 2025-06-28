@@ -197,8 +197,7 @@ const deleteUnit = async () => {
                             </thead>
                             <tbody>
 
-                                <tr v-for="unit in unitStore.units.data" :key="unit.id"
-                                    class="border-b dark:border-gray-700"
+                                <tr v-for="unit in unitStore.units" :key="unit.id" class="border-b dark:border-gray-700"
                                     :class="{ 'opacity-50': unitStore.isLoading && unitToDelete === unit.id }">
                                     <td class="px-4 py-3">{{ unit.id }}</td>
 

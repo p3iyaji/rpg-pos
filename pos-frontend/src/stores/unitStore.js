@@ -21,7 +21,7 @@ export const useUnitStore = defineStore('unit', () => {
         try {
             isLoading.value = true;
             const response = await axios.get(`/api/units?page=${page}`);
-            units.value = response.data;
+            units.value = response.data.data;
 
         } catch (err) {
             errorMessage.value = err.response?.data?.message || 'Failed to fetch Units';

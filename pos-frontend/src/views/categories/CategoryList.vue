@@ -196,7 +196,7 @@ const deleteCategory = async () => {
                             </thead>
                             <tbody>
 
-                                <tr v-for="category in categoryStore.categories.data" :key="category.id"
+                                <tr v-for="category in categoryStore.categories" :key="category.id"
                                     class="border-b dark:border-gray-700"
                                     :class="{ 'opacity-50': categoryStore.isLoading && categoryToDelete === category.id }">
                                     <td class="px-4 py-3">{{ category.id }}</td>

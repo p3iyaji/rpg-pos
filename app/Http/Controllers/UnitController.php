@@ -14,7 +14,7 @@ class UnitController extends Controller
      */
     public function index()
     {
-        return Unit::paginate(10);
+        return Unit::paginate(100);
     }
 
     /**

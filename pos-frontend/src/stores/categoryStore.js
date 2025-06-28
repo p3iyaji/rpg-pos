@@ -21,7 +21,7 @@ export const useCategoryStore = defineStore('category', () => {
         try {
             isLoading.value = true;
             const response = await axios.get(`/api/categories?page=${page}`);
-            categories.value = response.data;
+            categories.value = response.data.data;
 
         } catch (err) {
             errorMessage.value = err.response?.data?.message || 'Failed to fetch categories';
