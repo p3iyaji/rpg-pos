@@ -9,6 +9,8 @@ import { initFlowbite } from 'flowbite'
 import Swal from 'sweetalert2';
 
 
+const baseUrl = import.meta.env.VITE_API_BASE_URL;
+
 const authStore = useAuthStore();
 const productStore = useProductStore();
 const showDeleteModal = ref(false);
@@ -184,8 +186,13 @@ const deleteProduct = async () => {
                                 class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th scope="col" class="px-4 py-3">#ID</th>
+                                    <th scope="col" class="px-4 py-3">Image</th>
+
                                     <th scope="col" class="px-4 py-3">Name</th>
-                                    <th scope="col" class="px-4 py-3">Description</th>
+                                    <th scope="col" class="px-4 py-3">Barcode</th>
+                                    <th scope="col" class="px-4 py-3">Cost Price</th>
+
+                                    <th scope="col" class="px-4 py-3">Price</th>
                                     <th scope="col" class="px-4 py-3">
                                         <span class="sr-only">Actions</span>
                                     </th>
@@ -197,15 +204,21 @@ const deleteProduct = async () => {
                                     class="border-b dark:border-gray-700"
                                     :class="{ 'opacity-50': productStore.isLoading && productToDelete === product.id }">
                                     <td class="px-4 py-3">{{ product.id }}</td>
-
+                                    <td class="px-4 py-3">
+                                        <img class="h-12 w-12"
+                                            :src="product.image ? `${baseUrl}/storage/${product.image}` : '/images/default-food.png'"
+                                            :alt="product.name" />
+                                    </td>
                                     <td class="px-4 py-3">{{ product.name }}</td>
-                                    <td class="px-4 py-3">{{ product.description }}</td>
+                                    <td class="px-4 py-3">{{ product.barcode }}</td>
+                                    <td class="px-4 py-3">{{ product.price }}</td>
+                                    <td class="px-4 py-3">{{ product.cost_price }}</td>
                                     <td class="px-4 py-3 flex items-center justify-end">
 
                                         <div class="flex items-center">
 
 
-                                            <router-link :to="`/categories/${product.id}/edit`"
+                                            <router-link :to="`/products/${product.id}/edit`"
                                                 class="block py-1 px-4 mr-2 text-white rounded-md bg-teal-500 hover:bg-teal-100 dark:hover:bg-teal-600 dark:hover:text-gray-400">
                                                 Edit
                                             </router-link>

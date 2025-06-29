@@ -15,6 +15,19 @@ export const useAuthStore = defineStore('auth', () => {
     await axios.get('/sanctum/csrf-cookie');
   }
 
+  const setupAxiosInterceptors = () => {
+    axios.interceptors.response.use(
+      response => response,
+      async (error) => {
+        if (error.response?.status === 401) {
+          cleanState();
+          router.push({ name: 'login' });
+        }
+        return Promise.reject(error);
+      }
+    );
+  };
+
   const register = async (credentials) => {
     await getToken();
     isLoading.value = true;
@@ -48,6 +61,10 @@ export const useAuthStore = defineStore('auth', () => {
       await axios.post('/api/login', credentials);
       await getUser();
       errorMessage.value = {};
+
+      // Handle redirect after successful login
+      const redirect = router.currentRoute.value.query.redirect || '/dashboard';
+      router.push(redirect);
 
     } catch (error) {
       isLoading.value = false;
@@ -107,6 +124,7 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     errorMessage,
     isLoading,
+    setupAxiosInterceptors,
     register,
     login,
     getUser,

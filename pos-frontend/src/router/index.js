@@ -63,7 +63,7 @@ const routes = [
         meta: { requiresAuth: true }
     },
     {
-        path: '/product/:id/edit',
+        path: '/products/:id/edit',
         name: 'upddate-product',
         component: UpdateProduct
     },
@@ -112,14 +112,34 @@ const router = createRouter({
     routes
 })
 
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
     const auth = useAuthStore();
 
-    if (to.matched.some(record => record.meta.requiresAuth) && !auth.isAuthenticated) next({ name: "login" })
-    else if (to.matched.some(record => record.meta.requiresGuest) && auth.isAuthenticated)
-        next({ name: "dashboard" })
-    else next()
-})
+    // For protected routes
+    if (to.matched.some(record => record.meta.requiresAuth)) {
+        if (!auth.isAuthenticated) {
+            // Try to get user first (in case we have a valid session but the store was cleared)
+            try {
+                await auth.getUser();
+                if (auth.isAuthenticated) {
+                    return next();
+                }
+            } catch (error) {
+                console.error('Auth check failed:', error);
+            }
+            return next({ name: 'login', query: { redirect: to.fullPath } });
+        }
+    }
+
+    // For guest-only routes
+    if (to.matched.some(record => record.meta.requiresGuest)) {
+        if (auth.isAuthenticated) {
+            return next({ name: 'dashboard' });
+        }
+    }
+
+    next();
+});
 
 
 export default router;
