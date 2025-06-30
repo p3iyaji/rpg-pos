@@ -14,6 +14,7 @@ import UpdateCategory from '@/views/categories/UpdateCategory.vue';
 import AddCategory from '@/views/categories/AddCategory.vue';
 import Addproduct from '@/views/products/Addproduct.vue';
 import UpdateProduct from '@/views/products/UpdateProduct.vue';
+import ForgotPassword from '@/views/Auth/ForgotPassword.vue';
 
 
 const routes = [
@@ -38,6 +39,12 @@ const routes = [
         path: '/register',
         name: 'register',
         component: Register,
+        meta: { requiresGuest: true },
+    },
+    {
+        path: '/forgot-password',
+        name: 'forgot-password',
+        component: ForgotPassword,
         meta: { requiresGuest: true },
     },
     {

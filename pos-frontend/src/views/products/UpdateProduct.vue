@@ -14,6 +14,8 @@ import { useCategoryStore } from '@/stores/categoryStore';
 
 const authStore = useAuthStore();
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
+const image = ref(null);
+
 
 const unitStore = useUnitStore();
 const categoryStore = useCategoryStore();
@@ -21,6 +23,20 @@ const productStore = useProductStore();
 const router = useRouter();
 const route = useRoute();
 
+const form = ref({
+    name: '',
+    barcode: '',
+    description: '',
+    image: null,
+    unit_id: null,
+    category_id: null,
+    price: 0,
+    cost_price: 0,
+    quantity: 0,
+    is_active: true,
+
+
+});
 
 onMounted(async () => {
     await productStore.fetchProducts();
@@ -55,6 +71,12 @@ onMounted(async () => {
         image.value = { url: `${baseUrl}/storage/${product.image}` };
     }
 
+    // Render barcode if it exists
+    if (form.value.barcode) {
+        await nextTick();
+        renderBarcode();
+    }
+
 })
 
 const unitOptions = computed(() =>
@@ -65,20 +87,6 @@ const categoryOptions = computed(() =>
     Array.isArray(categoryStore.categories) ? categoryStore.categories.map(c => ({ id: c.id, name: c.name })) : []
 )
 
-const form = ref({
-    name: '',
-    barcode: '',
-    description: '',
-    image: null,
-    unit_id: null,
-    category_id: null,
-    price: 0,
-    cost_price: 0,
-    quantity: 0,
-    is_active: true,
-
-
-});
 const generateBarcode = async () => {
     try {
         // Generate random 12 digits for EAN-13
@@ -129,7 +137,7 @@ const renderBarcode = () => {
 // image handling
 const fileInput = ref(null);
 const previewImage = ref(null);
-const image = ref(null); // For existing image when editing
+//const image = ref(null); // For existing image when editing
 
 const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -162,7 +170,7 @@ const deleteImage = () => {
     // You would typically also make an API call to delete from server
 };
 
-const updateProduct = async () => {
+const editProduct = async () => {
     try {
         const formData = new FormData();
         formData.append('name', form.value.name);
@@ -177,8 +185,9 @@ const updateProduct = async () => {
         formData.append('cost_price', form.value.cost_price);
         formData.append('quantity', form.value.quantity);
         formData.append('is_active', form.value.is_active ? 1 : 0);
+        formData.append('_method', 'PUT');
 
-        const newProduct = await productStore.updateProduct(formData);
+        const newProduct = await productStore.updateProduct(route.params.id, formData);
 
         Swal.fire({
             toast: true,
@@ -206,7 +215,7 @@ const updateProduct = async () => {
 };
 
 const goBack = () => {
-    router.push('products');
+    router.go(-1);
 }
 
 </script>
@@ -233,7 +242,7 @@ const goBack = () => {
 
                 <!-- Form section -->
                 <div class="p-6">
-                    <form @submit.prevent="updateProduct">
+                    <form @submit.prevent="editProduct">
                         <div class="space-y-6">
                             <!-- Product Name -->
                             <div>
@@ -242,7 +251,7 @@ const goBack = () => {
                                 </label>
                                 <input v-model="form.name" type="text" id="name"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Enter product name" required>
+                                    placeholder="Enter product name">
                             </div>
                             <div>
                                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -346,7 +355,7 @@ const goBack = () => {
                                         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                         Selling Price
                                     </label>
-                                    <input v-model="form.price" type="number" id="price" min="0" step="0.01" required
+                                    <input v-model="form.price" type="number" id="price" min="0" step="0.01"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                                 </div>
                                 <div>
@@ -365,7 +374,7 @@ const goBack = () => {
                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Quantity
                                 </label>
-                                <input v-model="form.quantity" type="number" id="quantity" min="0" required
+                                <input v-model="form.quantity" type="number" id="quantity" min="0"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                             </div>
 
@@ -383,7 +392,7 @@ const goBack = () => {
                                 <button type="submit" :disabled="authStore.isLoading"
                                     class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200"
                                     :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }">
-                                    <span v-if="!authStore.isLoading">Create Product</span>
+                                    <span v-if="!authStore.isLoading">Update Product</span>
                                     <span v-else class="flex items-center">
                                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -393,7 +402,7 @@ const goBack = () => {
                                                 d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
                                             </path>
                                         </svg>
-                                        Creating...
+                                        Updating...
                                     </span>
                                 </button>
                             </div>

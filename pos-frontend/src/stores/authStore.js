@@ -87,6 +87,25 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  const forgotPassword = async (useremail) => {
+    isLoading.value = true;
+    try {
+      await axios.post('forgot-password', useremail);
+    } catch (error) {
+      isLoading.value = false;
+      if (error instanceof AxiosError && error.response?.status === 422) {
+        const errors = error.response.data.errors;
+        if (Array.isArray(errors)) {
+          errorMessage.value = { general: errors }
+        } else {
+          errorMessage.value = errors;
+        }
+      } else {
+        errorMessage.value = { general: ['Email sending failed. Please try again later'] };
+      }
+    }
+  }
+
   const getUser = async () => {
     await getToken();
     if (isAuthenticated.value) return;
@@ -127,6 +146,7 @@ export const useAuthStore = defineStore('auth', () => {
     setupAxiosInterceptors,
     register,
     login,
+    forgotPassword,
     getUser,
     logout,
     cleanState,

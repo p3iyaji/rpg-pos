@@ -1,13 +1,10 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
 import { useRouter, useRoute } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
 
-
-const authStore = useAuthStore();
 const categoryStore = useCategoryStore();
 const router = useRouter();
 const route = useRoute();
@@ -15,15 +12,12 @@ const route = useRoute();
 const form = ref({
     name: '',
     description: ''
-})
-
+});
 
 onMounted(async () => {
     await categoryStore.fetchCategories();
-
     const categoryId = route.params.id;
     const category = await categoryStore.fetchCategoryById(categoryId);
-    console.log(category);
 
     if (category) {
         form.value = {
@@ -34,8 +28,11 @@ onMounted(async () => {
 });
 
 const submitForm = async () => {
-    try {
-        await categoryStore.updateCategory(route.params.id, form.value);
+    categoryStore.errorMessage = {};
+
+    const response = await categoryStore.updateCategory(route.params.id, form.value);
+
+    if (response) {
         Swal.fire({
             toast: true,
             icon: 'success',
@@ -45,12 +42,15 @@ const submitForm = async () => {
             title: 'Category updated successfully!',
         });
         router.push('/categories');
-
-    } catch (error) {
-        console.error('Error updating category: ', error);
+    } else if (categoryStore.errorMessage.general) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: categoryStore.errorMessage.general[0],
+        });
     }
+};
 
-}
 
 const goBack = () => {
     router.go(-1);
@@ -60,12 +60,9 @@ const goBack = () => {
 
 <template>
     <AppLayout>
-
-        <!-- Container for centering content -->
         <div class="max-w-4xl mx-auto">
-            <!-- Card-like container -->
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-md overflow-hidden">
-                <!-- Header section with title and back button -->
+                <!-- Header section -->
                 <div class="p-6 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex justify-between items-center">
                         <h2 class="text-2xl font-bold text-gray-900 dark:text-white">
@@ -80,6 +77,12 @@ const goBack = () => {
 
                 <!-- Form section -->
                 <div class="p-6">
+                    <!-- General error message -->
+                    <div v-if="categoryStore.errorMessage.general"
+                        class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {{ categoryStore.errorMessage.general[0] }}
+                    </div>
+
                     <form @submit.prevent="submitForm">
                         <div class="space-y-6">
                             <!-- Category Name -->
@@ -87,9 +90,14 @@ const goBack = () => {
                                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Category Name
                                 </label>
-                                <input v-model="form.name" type="text" id="name"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Enter category name" required>
+                                <input v-model="form.name" type="text" id="name" :class="{
+                                    'border-red-500': categoryStore.errorMessage.name,
+                                    'border-gray-300': !categoryStore.errorMessage.name
+                                }" class="bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                    placeholder="Enter category name">
+                                <p v-if="categoryStore.errorMessage?.name" class="mt-1 text-sm text-red-600">
+                                    {{ categoryStore.errorMessage.name[0] }}
+                                </p>
                             </div>
 
                             <!-- Description -->
@@ -98,17 +106,22 @@ const goBack = () => {
                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Description
                                 </label>
-                                <textarea v-model="form.description" id="description" rows="6"
-                                    class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                                <textarea v-model="form.description" id="description" rows="6" :class="{
+                                    'border-red-500': categoryStore.errorMessage.description,
+                                    'border-gray-300': !categoryStore.errorMessage.description
+                                }" class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     placeholder="Enter category description"></textarea>
+                                <p v-if="categoryStore.errorMessage?.description" class="mt-1 text-sm text-red-600">
+                                    {{ categoryStore.errorMessage.description[0] }}
+                                </p>
                             </div>
 
                             <!-- Submit Button -->
                             <div class="flex justify-end pt-4">
-                                <button type="submit" :disabled="authStore.isLoading"
+                                <button type="submit" :disabled="categoryStore.isLoading"
                                     class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200"
-                                    :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }">
-                                    <span v-if="!authStore.isLoading">Update Category</span>
+                                    :class="{ 'opacity-50 cursor-not-allowed': categoryStore.isLoading }">
+                                    <span v-if="!categoryStore.isLoading">Update Category</span>
                                     <span v-else class="flex items-center">
                                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -127,6 +140,5 @@ const goBack = () => {
                 </div>
             </div>
         </div>
-
     </AppLayout>
 </template>

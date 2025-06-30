@@ -54,17 +54,43 @@ class ProductController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(StoreProductRequest $request, Product $product)
+    public function update(Request $request, Product $product)
     {
-        $validatedData = $request->validated();
+
 
         if ($request->hasFile('image')) {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'barcode' => 'nullable|string',
+                'description' => 'nullable|string',
+                'image' => 'image|mimes:jpeg,png,jpg,gif|max:2053',
+                'unit_id' => 'required',
+                'category_id' => 'required',
+                'price' => 'required',
+                'cost_price' => 'required',
+                'quantity' => 'required|integer',
+                'is_active' => 'required|boolean'
+            ]);
+
             if ($product->image && Storage::disk('public')->exists($product->image)) {
                 Storage::disk('public')->delete($product->image);
             }
 
             $file = $request->file('image');
             $validatedData['image'] = $file->store('product_images', 'public');
+        } else {
+            $validatedData = $request->validate([
+                'name' => 'required|string|max:255',
+                'barcode' => 'nullable|string',
+                'description' => 'nullable|string',
+                'unit_id' => 'required',
+                'category_id' => 'required',
+                'price' => 'required',
+                'cost_price' => 'required',
+                'quantity' => 'required|integer',
+                'is_active' => 'required|boolean'
+            ]);
+
         }
 
         $product->slug = Str::slug($validatedData['name']);

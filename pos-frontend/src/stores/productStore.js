@@ -64,7 +64,7 @@ export const useProductStore = defineStore('product', () => {
             isLoading.value = true;
             errorMessage.value = null;
 
-            const response = await axios.put(`/api/products/${productId}`, productData);
+            const response = await axios.post(`/api/products/${productId}`, productData);
 
             // Update the product in the local state
             const index = products.value.data.findIndex(p => p.id === productId);

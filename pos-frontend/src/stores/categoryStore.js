@@ -11,7 +11,7 @@ export const useCategoryStore = defineStore('category', () => {
 
     const currentCategory = ref(null);
     const isLoading = ref(false);
-    const errorMessage = ref(null);
+    const errorMessage = ref({});
 
     const authstore = useAuthStore();
 
@@ -58,20 +58,28 @@ export const useCategoryStore = defineStore('category', () => {
     const updateCategory = async (categoryId, categoryData) => {
         try {
             isLoading.value = true;
-            errorMessage.value = null;
+            errorMessage.value = {}; // Clear previous errors
 
             const response = await axios.put(`/api/categories/${categoryId}`, categoryData);
 
             // Update the category in the local state
-            const index = categories.value.data.findIndex(c => c.id === categoryId);
-            if (index !== -1) {
-                categories.value.data[index] = response.data;
+            const index = categories.value.data?.findIndex(c => c.id === categoryId);
+            if (index !== -1 && categories.value.data) {
+                categories.value.data[index] = response.data.data;
             }
 
             return response.data;
-        } catch (err) {
-            errorMessage.value = err.response?.data?.message || 'Failed to update category';
-            throw err;
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.status === 422) {
+                // Only handle API validation errors
+                errorMessage.value = error.response.data.errors;
+            } else {
+                // For other errors, just show a general message
+                errorMessage.value = {
+                    general: [error.response?.data?.message || 'Failed to update category']
+                };
+            }
+            return null;
         } finally {
             isLoading.value = false;
         }
