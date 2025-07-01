@@ -11,7 +11,7 @@ export const useProductStore = defineStore('product', () => {
 
     const currentProduct = ref(null);
     const isLoading = ref(false);
-    const errorMessage = ref(null);
+    const errorMessage = ref({});
 
     const authstore = useAuthStore();
 
@@ -33,15 +33,33 @@ export const useProductStore = defineStore('product', () => {
     const createProduct = async (productData) => {
         try {
             isLoading.value = true;
+            errorMessage.value = {};
             const response = await axios.post('/api/products', productData, {
                 headers: {
                     'Content-Type': 'multipart/form-data'
                 }
             });
-            products.value.push(response.data.product)
-            return response.data;
-        } catch (err) {
-            errorMessage.value = err.response?.data?.message || 'Failed to create products';
+
+            // to clear any previous errors on success
+            errorMessage.value = {};
+
+            return {
+                success: true,
+                data: response.data
+            };
+
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.status === 422) {
+                errorMessage.value = error.response.data.errors;
+            } else {
+                errorMessage.value = {
+                    general: [error.response?.data?.message || 'Failed to create product']
+                };
+            }
+            return {
+                success: false,
+                error: errorMessage.value
+            };
         } finally {
             isLoading.value = false;
         }
@@ -73,9 +91,17 @@ export const useProductStore = defineStore('product', () => {
             }
 
             return response.data;
-        } catch (err) {
-            errorMessage.value = err.response?.data?.message || 'Failed to update product';
-            throw err;
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.status === 422) {
+                // Only handle API validation errors
+                errorMessage.value = error.response.data.errors;
+            } else {
+                // For other errors, just show a general message
+                errorMessage.value = {
+                    general: [error.response?.data?.message || 'Failed to update category']
+                };
+            }
+            return null;
         } finally {
             isLoading.value = false;
         }

@@ -1,4 +1,5 @@
 <script setup>
+
 import { RouterView, useRoute } from 'vue-router';
 import { onMounted, watch } from 'vue';
 import { initFlowbite } from 'flowbite'

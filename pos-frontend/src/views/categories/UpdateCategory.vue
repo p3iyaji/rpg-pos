@@ -1,5 +1,6 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
+
 import { useRouter, useRoute } from 'vue-router';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { ref, onMounted } from 'vue';
@@ -42,6 +43,7 @@ const submitForm = async () => {
             title: 'Category updated successfully!',
         });
         router.push('/categories');
+
     } else if (categoryStore.errorMessage.general) {
         Swal.fire({
             icon: 'error',

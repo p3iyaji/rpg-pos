@@ -33,11 +33,23 @@ export const useCategoryStore = defineStore('category', () => {
     const createCategory = async (categoryData) => {
         try {
             isLoading.value = true;
+            errorMessage.value = {};
+
             const response = await axios.post('/api/categories', categoryData);
             categories.value.push(response.data.category)
+
             return response.data;
-        } catch (err) {
-            errorMessage.value = err.response?.data?.message || 'Failed to create categories';
+
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.status === 422) {
+                errorMessage.value = error.response.data.errors;
+            } else {
+                errorMessage.value = {
+                    general: [error.response?.data?.message || 'Failed to create category']
+                };
+            }
+            return null;
+
         } finally {
             isLoading.value = false;
         }

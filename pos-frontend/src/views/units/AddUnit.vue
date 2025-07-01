@@ -1,12 +1,11 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
+
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
 import { useUnitStore } from '@/stores/unitStore';
 import { ref } from 'vue';
 import Swal from 'sweetalert2';
 
-const authStore = useAuthStore();
 const unitStore = useUnitStore();
 const router = useRouter();
 
@@ -16,13 +15,13 @@ const form = ref({
 })
 
 const addUnit = async () => {
-    try {
-        const newUnit = await unitStore.createUnit({
-            name: form.value.name,
-            description: form.value.description
-        });
 
+    const response = await unitStore.createUnit({
+        name: form.value.name,
+        description: form.value.description
+    });
 
+    if (response) {
         Swal.fire({
             toast: true,
             icon: 'success',
@@ -31,30 +30,26 @@ const addUnit = async () => {
             timer: 3000,
             title: 'Unit created successfully!',
         });
-        router.push('/units');
-
-
-    } catch (err) {
+        router.push('/categories');
+    } else if (unitStore.errorMessage.general) {
         Swal.fire({
-            toast: true,
             icon: 'error',
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            title: 'An unexpected error occurred.',
+            title: 'Error',
+            text: unitStore.errorMessage.general[0],
         });
     }
+
+
 };
 
 const goBack = () => {
-    router.push('units');
+    router.go(-1);
 }
 
 </script>
 
 <template>
     <AppLayout>
-
         <!-- Container for centering content -->
         <div class="max-w-4xl mx-auto">
             <!-- Card-like container -->
@@ -74,16 +69,29 @@ const goBack = () => {
 
                 <!-- Form section -->
                 <div class="p-6">
+
+                    <!-- General error message -->
+                    <div v-if="unitStore.errorMessage.general"
+                        class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {{ categoryStore.errorMessage.general[0] }}
+                    </div>
+
                     <form @submit.prevent="addUnit">
+
                         <div class="space-y-6">
                             <!-- Unit Name -->
                             <div>
                                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Unit Name
                                 </label>
-                                <input v-model="form.name" type="text" id="name"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                <input v-model="form.name" type="text" id="name" :class="{
+                                    'border-red-500': unitStore.errorMessage.name,
+                                    'border-gray-300': !unitStore.errorMessage.name
+                                }" class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
                                     placeholder="Enter unit name">
+                                <span v-if="unitStore.errorMessage?.name" class="text-red-600">
+                                    {{ unitStore.errorMessage.name[0] }}
+                                </span>
                             </div>
 
                             <!-- Description -->
@@ -99,10 +107,10 @@ const goBack = () => {
 
                             <!-- Submit Button -->
                             <div class="flex justify-end pt-4">
-                                <button type="submit" :disabled="authStore.isLoading"
+                                <button type="submit" :disabled="unitStore.isLoading"
                                     class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200"
-                                    :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }">
-                                    <span v-if="!authStore.isLoading">Create Unit</span>
+                                    :class="{ 'opacity-50 cursor-not-allowed': unitStore.isLoading }">
+                                    <span v-if="!unitStore.isLoading">Create Unit</span>
                                     <span v-else class="flex items-center">
                                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -121,6 +129,5 @@ const goBack = () => {
                 </div>
             </div>
         </div>
-
     </AppLayout>
 </template>

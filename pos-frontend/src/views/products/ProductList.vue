@@ -1,5 +1,6 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
+
 import { useAuthStore } from '@/stores/authStore';
 import { useProductStore } from '@/stores/productStore';
 import { useRouter, RouterLink } from 'vue-router';
@@ -7,6 +8,7 @@ import { onMounted, ref } from 'vue';
 import { TailwindPagination } from 'laravel-vue-pagination';
 import { initFlowbite } from 'flowbite'
 import Swal from 'sweetalert2';
+
 
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;

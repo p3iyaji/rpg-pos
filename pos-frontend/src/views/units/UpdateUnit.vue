@@ -1,13 +1,12 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
+
 import { useRouter, useRoute } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
 import { useUnitStore } from '@/stores/unitStore';
 import { ref, onMounted } from 'vue';
 import Swal from 'sweetalert2';
 
 
-const authStore = useAuthStore();
 const unitStore = useUnitStore();
 const router = useRouter();
 const route = useRoute();
@@ -33,9 +32,11 @@ onMounted(async () => {
     }
 });
 
-const submitForm = async () => {
-    try {
-        await unitStore.updateUnit(route.params.id, form.value);
+const updateUnit = async () => {
+    unitStore.errorMessage = {};
+
+    const response = await unitStore.updateUnit(route.params.id, form.value);
+    if (response) {
         Swal.fire({
             toast: true,
             icon: 'success',
@@ -46,9 +47,14 @@ const submitForm = async () => {
         });
         router.push('/units');
 
-    } catch (error) {
-        console.error('Error updating unit: ', error);
+    } else if (unitStore.errorMessage.general) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: unitStore.errorMessage.general[0],
+        });
     }
+
 
 }
 
@@ -80,16 +86,26 @@ const goBack = () => {
 
                 <!-- Form section -->
                 <div class="p-6">
-                    <form @submit.prevent="submitForm">
+                    <!-- General error message -->
+                    <div v-if="unitStore.errorMessage.general"
+                        class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {{ unitStore.errorMessage.general[0] }}
+                    </div>
+                    <form @submit.prevent="updateUnit">
                         <div class="space-y-6">
                             <!-- Unit Name -->
                             <div>
                                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Unit Name
                                 </label>
-                                <input v-model="form.name" type="text" id="name"
-                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Enter unit name" required>
+                                <input v-model="form.name" type="text" id="name" :class="{
+                                    'border-red-500': unitStore.errorMessage.name,
+                                    'border-gray-300': !unitStore.errorMessage.name
+                                }" class="bg-gray-50 border text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
+                                    placeholder="Enter unit name">
+                                <p v-if="unitStore.errorMessage?.name" class="mt-1 text-sm text-red-600">
+                                    {{ unitStore.errorMessage.name[0] }}
+                                </p>
                             </div>
 
                             <!-- Description -->
@@ -105,10 +121,10 @@ const goBack = () => {
 
                             <!-- Submit Button -->
                             <div class="flex justify-end pt-4">
-                                <button type="submit" :disabled="authStore.isLoading"
+                                <button type="submit" :disabled="unitStore.isLoading"
                                     class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200"
-                                    :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }">
-                                    <span v-if="!authStore.isLoading">Update Unit</span>
+                                    :class="{ 'opacity-50 cursor-not-allowed': unitStore.isLoading }">
+                                    <span v-if="!unitStore.isLoading">Update Unit</span>
                                     <span v-else class="flex items-center">
                                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

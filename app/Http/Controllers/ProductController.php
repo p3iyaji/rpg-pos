@@ -8,6 +8,7 @@ use App\Http\Requests\StoreProductRequest;
 use Illuminate\Support\Str;
 use Storage;
 use Auth;
+use Log;
 
 class ProductController extends Controller
 {
@@ -40,7 +41,7 @@ class ProductController extends Controller
         return response()->json([
             'message' => 'Product added successfully',
             'product' => $product,
-        ]);
+        ], 201);
     }
 
     /**
@@ -61,13 +62,13 @@ class ProductController extends Controller
         if ($request->hasFile('image')) {
             $validatedData = $request->validate([
                 'name' => 'required|string|max:255',
-                'barcode' => 'nullable|string',
+                'barcode' => 'required|string',
                 'description' => 'nullable|string',
                 'image' => 'image|mimes:jpeg,png,jpg,gif|max:2053',
                 'unit_id' => 'required',
                 'category_id' => 'required',
-                'price' => 'required',
-                'cost_price' => 'required',
+                'price' => 'required|decimal:0,2|min:0',
+                'cost_price' => 'required|decimal:0,2|min:0',
                 'quantity' => 'required|integer',
                 'is_active' => 'required|boolean'
             ]);
@@ -85,8 +86,8 @@ class ProductController extends Controller
                 'description' => 'nullable|string',
                 'unit_id' => 'required',
                 'category_id' => 'required',
-                'price' => 'required',
-                'cost_price' => 'required',
+                'price' => 'required|decimal:0,2|min:0',
+                'cost_price' => 'required|decimal:0,2|min:0',
                 'quantity' => 'required|integer',
                 'is_active' => 'required|boolean'
             ]);

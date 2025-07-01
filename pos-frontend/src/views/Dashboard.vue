@@ -11,7 +11,6 @@ onMounted(() => {
 
 <template>
 
-
     <AppLayout>
 
         <Head title="Dashboard" />
@@ -19,9 +18,7 @@ onMounted(() => {
 
             <h2 class="text-teal-600">Dashboard</h2>
         </div>
+
     </AppLayout>
-
-
-
 
 </template>

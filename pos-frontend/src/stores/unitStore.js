@@ -11,7 +11,7 @@ export const useUnitStore = defineStore('unit', () => {
 
     const currentUnit = ref(null);
     const isLoading = ref(false);
-    const errorMessage = ref(null);
+    const errorMessage = ref({});
 
     const authstore = useAuthStore();
 
@@ -33,11 +33,23 @@ export const useUnitStore = defineStore('unit', () => {
     const createUnit = async (unitData) => {
         try {
             isLoading.value = true;
+            errorMessage.value = {};
+
             const response = await axios.post('/api/units', unitData);
             units.value.push(response.data.unit)
+
             return response.data;
-        } catch (err) {
-            errorMessage.value = err.response?.data?.message || 'Failed to create Unit';
+
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.status === 422) {
+                errorMessage.value = error.response.data.errors;
+            } else {
+                errorMessage.value = {
+                    general: [error.response?.data?.message || 'Failed to create unit']
+                };
+            }
+            return null;
+
         } finally {
             isLoading.value = false;
         }
@@ -63,15 +75,25 @@ export const useUnitStore = defineStore('unit', () => {
             const response = await axios.put(`/api/units/${unitId}`, unitData);
 
             // Update the unit in the local state
-            const index = units.value.data.findIndex(u => u.id === unitId);
-            if (index !== -1) {
+            const index = units.value.data?.findIndex(u => u.id === unitId);
+            if (index !== -1 && units.value.data) {
                 units.value.data[index] = response.data;
             }
 
             return response.data;
-        } catch (err) {
-            errorMessage.value = err.response?.data?.message || 'Failed to update unit';
-            throw err;
+
+        } catch (error) {
+            if (error instanceof AxiosError && error.response?.status === 422) {
+                // Only handle API validation errors
+                errorMessage.value = error.response.data.errors;
+            } else {
+                // For other errors, just show a general message
+                errorMessage.value = {
+                    general: [error.response?.data?.message || 'Failed to update unit']
+                };
+            }
+            return null;
+
         } finally {
             isLoading.value = false;
         }

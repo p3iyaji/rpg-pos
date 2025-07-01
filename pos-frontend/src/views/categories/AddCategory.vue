@@ -1,5 +1,6 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
+
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useCategoryStore } from '@/stores/categoryStore';
@@ -15,15 +16,15 @@ const form = ref({
     description: ''
 })
 
+
 const addCategory = async () => {
-    try {
-        const newCategory = await categoryStore.createCategory({
-            name: form.value.name,
-            description: form.value.description
-        });
 
-        //if (!newCategory) return;
+    const response = await categoryStore.createCategory({
+        name: form.value.name,
+        description: form.value.description
+    });
 
+    if (response) {
         Swal.fire({
             toast: true,
             icon: 'success',
@@ -33,29 +34,23 @@ const addCategory = async () => {
             title: 'Category created successfully!',
         });
         router.push('/categories');
-
-
-    } catch (err) {
+    } else if (categoryStore.errorMessage.general) {
         Swal.fire({
-            toast: true,
             icon: 'error',
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            title: 'An unexpected error occurred.',
+            title: 'Error',
+            text: categoryStore.errorMessage.general[0],
         });
     }
-};
+}
 
 const goBack = () => {
-    router.push('categories');
+    router.go(-1);
 }
 
 </script>
 
 <template>
     <AppLayout>
-
         <!-- Container for centering content -->
         <div class="max-w-4xl mx-auto">
             <!-- Card-like container -->
@@ -75,6 +70,11 @@ const goBack = () => {
 
                 <!-- Form section -->
                 <div class="p-6">
+                    <!-- General error message -->
+                    <div v-if="categoryStore.errorMessage.general"
+                        class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {{ categoryStore.errorMessage.general[0] }}
+                    </div>
                     <form @submit.prevent="addCategory">
                         <div class="space-y-6">
                             <!-- Category Name -->
@@ -125,6 +125,5 @@ const goBack = () => {
                 </div>
             </div>
         </div>
-
     </AppLayout>
 </template>

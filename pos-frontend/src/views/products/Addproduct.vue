@@ -1,9 +1,9 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
+
 import '@vueform/multiselect/themes/default.css'
 import Multiselect from '@vueform/multiselect'
 import { useRouter } from 'vue-router';
-import { useAuthStore } from '@/stores/authStore';
 import { useProductStore } from '@/stores/productStore';
 import { ref, nextTick, onMounted, computed } from 'vue';
 import Swal from 'sweetalert2';
@@ -12,11 +12,11 @@ import { useUnitStore } from '@/stores/unitStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 
 
-const authStore = useAuthStore();
 const unitStore = useUnitStore();
 const categoryStore = useCategoryStore();
 const productStore = useProductStore();
 const router = useRouter();
+
 
 onMounted(async () => {
     try {
@@ -42,8 +42,8 @@ const form = ref({
     image: null,
     unit_id: null,
     category_id: null,
-    price: 0,
-    cost_price: 0,
+    price: null,
+    cost_price: null,
     quantity: 0,
     is_active: true,
 
@@ -133,23 +133,23 @@ const deleteImage = () => {
 };
 
 const addProduct = async () => {
-    try {
-        const formData = new FormData();
-        formData.append('name', form.value.name);
-        formData.append('barcode', form.value.barcode);
-        formData.append('description', form.value.description);
-        if (form.value.image) {
-            formData.append('image', form.value.image);
-        }
-        formData.append('unit_id', form.value.unit_id);
-        formData.append('category_id', form.value.category_id);
-        formData.append('price', form.value.price);
-        formData.append('cost_price', form.value.cost_price);
-        formData.append('quantity', form.value.quantity);
-        formData.append('is_active', form.value.is_active ? 1 : 0);
+    const formData = new FormData();
+    formData.append('name', form.value.name);
+    formData.append('barcode', form.value.barcode);
+    formData.append('description', form.value.description);
+    if (form.value.image) {
+        formData.append('image', form.value.image);
+    }
+    formData.append('unit_id', form.value.unit_id);
+    formData.append('category_id', form.value.category_id);
+    formData.append('price', form.value.price);
+    formData.append('cost_price', form.value.cost_price);
+    formData.append('quantity', form.value.quantity);
+    formData.append('is_active', form.value.is_active ? 1 : 0);
 
-        const newProduct = await productStore.createProduct(formData);
+    const response = await productStore.createProduct(formData);
 
+    if (response.success) {
         Swal.fire({
             toast: true,
             icon: 'success',
@@ -159,31 +159,26 @@ const addProduct = async () => {
             title: 'Product created successfully!',
         });
         router.push('/products');
+    } else {
 
-
-    } catch (err) {
-        console.error('Error creating product:', err);
-
-        Swal.fire({
-            toast: true,
-            icon: 'error',
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            title: 'An unexpected error occurred.',
-        });
+        if (productStore.errorMessage.general) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: productStore.errorMessage.general[0]
+            });
+        }
     }
 };
 
 const goBack = () => {
-    router.push('products');
+    router.go(-1);
 }
 
 </script>
 
 <template>
     <AppLayout>
-
         <!-- Container for centering content -->
         <div class="max-w-4xl mx-auto">
             <!-- Card-like container -->
@@ -203,6 +198,11 @@ const goBack = () => {
 
                 <!-- Form section -->
                 <div class="p-6">
+                    <!-- General error message -->
+                    <div v-if="productStore.errorMessage.general"
+                        class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+                        {{ productStore.errorMessage.general[0] }}
+                    </div>
                     <form @submit.prevent="addProduct">
                         <div class="space-y-6">
                             <!-- Product Name -->
@@ -212,7 +212,10 @@ const goBack = () => {
                                 </label>
                                 <input v-model="form.name" type="text" id="name"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                    placeholder="Enter product name" required>
+                                    placeholder="Enter product name">
+                                <span v-if="productStore.errorMessage.name" class="text-red-600">
+                                    {{ productStore.errorMessage.name[0] }}
+                                </span>
                             </div>
                             <div>
                                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -221,6 +224,9 @@ const goBack = () => {
                                 <Multiselect v-model="form.unit_id" id="unit_id" :options="unitOptions" label="name"
                                     valueProp="id" :searchable="true" placeholder="Select a unit" :filterResults="true"
                                     :minChars="1" :resolveOnLoad="true" trackBy="name" />
+                                <span v-if="productStore.errorMessage.unit_id" class="text-red-600">
+                                    {{ productStore.errorMessage.unit_id[0] }}
+                                </span>
                             </div>
                             <div>
                                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -229,6 +235,7 @@ const goBack = () => {
                                 <Multiselect v-model="form.category_id" id="category_id" :options="categoryOptions"
                                     label="name" valueProp="id" :searchable="true" placeholder="Select a category"
                                     :filterResults="true" :minChars="1" :resolveOnLoad="true" trackBy="name" />
+
                             </div>
                             <div>
                                 <label for="name" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
@@ -243,6 +250,10 @@ const goBack = () => {
                                         class="px-6 py-2 mt-2 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200">
                                         Generate
                                     </button>
+                                    <br>
+                                    <span v-if="productStore.errorMessage.barcode" class="text-red-600">
+                                        {{ productStore.errorMessage.barcode[0] }}
+                                    </span>
                                 </div>
                                 <!-- Barcode display (always rendered but hidden when empty) -->
                                 <div class="mt-4">
@@ -315,8 +326,11 @@ const goBack = () => {
                                         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                         Selling Price
                                     </label>
-                                    <input v-model="form.price" type="number" id="price" min="0" step="0.01" required
+                                    <input v-model="form.price" type="number" id="price" min="0" step="0.01"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                    <span v-if="productStore.errorMessage.price" class="text-red-600">
+                                        {{ productStore.errorMessage.price[0] }}
+                                    </span>
                                 </div>
                                 <div>
                                     <label for="cost_price"
@@ -325,6 +339,9 @@ const goBack = () => {
                                     </label>
                                     <input v-model="form.cost_price" type="number" id="cost_price" min="0" step="0.01"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                    <span v-if="productStore.errorMessage.cost_price" class="text-red-600">
+                                        {{ productStore.errorMessage.cost_price[0] }}
+                                    </span>
                                 </div>
                             </div>
 
@@ -334,7 +351,7 @@ const goBack = () => {
                                     class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                     Quantity
                                 </label>
-                                <input v-model="form.quantity" type="number" id="quantity" min="0" required
+                                <input v-model="form.quantity" type="number" id="quantity" min="0"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                             </div>
 
@@ -349,10 +366,10 @@ const goBack = () => {
                             </div>
                             <!-- Submit Button -->
                             <div class="flex justify-end pt-4">
-                                <button type="submit" :disabled="authStore.isLoading"
+                                <button type="submit" :disabled="productStore.isLoading"
                                     class="px-6 py-3 bg-teal-600 hover:bg-teal-700 text-white font-medium rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800 transition-colors duration-200"
-                                    :class="{ 'opacity-50 cursor-not-allowed': authStore.isLoading }">
-                                    <span v-if="!authStore.isLoading">Create Product</span>
+                                    :class="{ 'opacity-50 cursor-not-allowed': productStore.isLoading }">
+                                    <span v-if="!productStore.isLoading">Create Product</span>
                                     <span v-else class="flex items-center">
                                         <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                             xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
@@ -371,6 +388,5 @@ const goBack = () => {
                 </div>
             </div>
         </div>
-
     </AppLayout>
 </template>

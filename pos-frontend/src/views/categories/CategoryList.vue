@@ -1,5 +1,6 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
+
 import { useAuthStore } from '@/stores/authStore';
 import { useCategoryStore } from '@/stores/categoryStore';
 import { useRouter, RouterLink } from 'vue-router';
@@ -289,4 +290,5 @@ const deleteCategory = async () => {
             </div>
         </section>
     </AppLayout>
+
 </template>
