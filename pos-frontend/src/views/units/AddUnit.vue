@@ -30,7 +30,7 @@ const addUnit = async () => {
             timer: 3000,
             title: 'Unit created successfully!',
         });
-        router.push('/categories');
+        router.push('/units');
     } else if (unitStore.errorMessage.general) {
         Swal.fire({
             icon: 'error',
@@ -38,9 +38,7 @@ const addUnit = async () => {
             text: unitStore.errorMessage.general[0],
         });
     }
-
-
-};
+}
 
 const goBack = () => {
     router.go(-1);

@@ -15,6 +15,7 @@ import AddCategory from '@/views/categories/AddCategory.vue';
 import Addproduct from '@/views/products/Addproduct.vue';
 import UpdateProduct from '@/views/products/UpdateProduct.vue';
 import ForgotPassword from '@/views/Auth/ForgotPassword.vue';
+import POS from '@/views/products/POS.vue';
 
 
 const routes = [
@@ -106,7 +107,14 @@ const routes = [
     {
         path: '/categories/:id/edit',
         name: 'update-category',
-        component: UpdateCategory
+        component: UpdateCategory,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/pos',
+        name: 'pos',
+        component: POS,
+        meta: { requiresAuth: true },
     }
 
 
