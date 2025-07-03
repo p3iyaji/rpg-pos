@@ -302,7 +302,7 @@ onMounted(() => {
                         <div class="border-b border-teal-200 pb-2 mb-4">
                             <div v-for="(item, index) in cart" :key="index"
                                 class="flex items-center py-2 border-b border-teal-100">
-                                <div class="w-8 h-8 bg-teal-100 rounded-md overflow-hidden mr-3 flex-shrink-0">
+                                <div class="w-16 h-16 bg-teal-100 rounded-md overflow-hidden mr-3 flex-shrink-0">
                                     <img v-if="item.product.image" :src="`${baseUrl}/storage/${item.product.image}`"
                                         :alt="item.product.name" class="object-cover h-full w-full">
                                     <div v-else class="text-teal-400 h-full flex items-center justify-center">
@@ -312,36 +312,37 @@ onMounted(() => {
                                                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
-                                    <div class="flex-1">
-                                        <h3 class="font-medium text-teal-800">{{ item.product.name }}</h3>
-                                        <div class="flex items-center justify-between mt-1">
-                                            <div class="flex items-center">
-                                                <!-- Quantity controls -->
-                                                <button @click.stop="decreaseQuantity(index)"
-                                                    class="w-6 h-6 flex items-center justify-center bg-teal-200 rounded hover:bg-teal-300">
-                                                    -
-                                                </button>
-                                                <span class="mx-2 w-6 text-center">{{ item.quantity }}</span>
-                                                <button @click.stop="increaseQuantity(index)"
-                                                    class="w-6 h-6 flex items-center justify-center bg-teal-200 rounded hover:bg-teal-300">
-                                                    +
-                                                </button>
-                                                <!-- Remove button -->
-                                                <button @click.stop="removeItem(index)"
-                                                    class="ml-2 text-red-500 hover:text-red-700">
-                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                                        viewBox="0 0 24 24" stroke="currentColor">
-                                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                                            stroke-width="2"
-                                                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                                    </svg>
-                                                </button>
-                                            </div>
-                                            <!-- Price display -->
-                                            <span class="font-medium text-teal-800">
-                                                {{ formatCurrency(item.product.price * item.quantity) }}
-                                            </span>
+
+                                </div>
+                                <div class="flex-1">
+                                    <h3 class="font-medium text-teal-800">{{ item.product.name }}</h3>
+                                    <div class="flex items-center justify-between mt-1">
+                                        <div class="flex items-center">
+                                            <!-- Quantity controls -->
+                                            <button @click.stop="decreaseQuantity(index)"
+                                                class="w-6 h-6 flex items-center justify-center bg-teal-200 rounded hover:bg-teal-300">
+                                                -
+                                            </button>
+                                            <span class="mx-2 w-6 text-center">{{ item.quantity }}</span>
+                                            <button @click.stop="increaseQuantity(index)"
+                                                class="w-6 h-6 flex items-center justify-center bg-teal-200 rounded hover:bg-teal-300">
+                                                +
+                                            </button>
+                                            <!-- Remove button -->
+                                            <button @click.stop="removeItem(index)"
+                                                class="ml-2 text-red-500 hover:text-red-700">
+                                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                    viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                                        stroke-width="2"
+                                                        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                                </svg>
+                                            </button>
                                         </div>
+                                        <!-- Price display -->
+                                        <span class="font-medium text-teal-800">
+                                            {{ formatCurrency(item.product.price * item.quantity) }}
+                                        </span>
                                     </div>
                                 </div>
                             </div>
