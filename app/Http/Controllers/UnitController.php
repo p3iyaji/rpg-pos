@@ -32,6 +32,7 @@ class UnitController extends Controller
                 'name' => $request['name'],
                 'slug' => Str::slug($request['name']),
                 'description' => $request['description'],
+                'is_active' => $request->is_active,
             ]);
 
             return response()->json([
@@ -56,7 +57,8 @@ class UnitController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable|string'
+            'description' => 'nullable|string',
+            'is_active' => 'required|boolean',
         ]);
 
         $unit->update($validated);

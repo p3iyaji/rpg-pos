@@ -13,15 +13,16 @@ export const useCategoryStore = defineStore('category', () => {
     const isLoading = ref(false);
     const errorMessage = ref({});
 
+
     const authstore = useAuthStore();
 
 
     const fetchCategories = async (page = 1) => {
-        await authstore.isAuthenticated;
+        authstore.isAuthenticated;
         try {
             isLoading.value = true;
             const response = await axios.get(`/api/categories?page=${page}`);
-            categories.value = response.data.data;
+            categories.value = response.data;
 
         } catch (err) {
             errorMessage.value = err.response?.data?.message || 'Failed to fetch categories';
@@ -66,7 +67,6 @@ export const useCategoryStore = defineStore('category', () => {
     }
 
 
-    // Add to your existing store
     const updateCategory = async (categoryId, categoryData) => {
         try {
             isLoading.value = true;

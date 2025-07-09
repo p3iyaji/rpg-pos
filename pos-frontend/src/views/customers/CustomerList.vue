@@ -1,7 +1,7 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
 
-import { useCategoryStore } from '@/stores/categoryStore';
+import { useCustomerStore } from '@/stores/customerStore';
 import { useRouter, RouterLink } from 'vue-router';
 import { onMounted, ref } from 'vue';
 import { TailwindPagination } from 'laravel-vue-pagination';
@@ -9,11 +9,11 @@ import { initFlowbite } from 'flowbite'
 import Swal from 'sweetalert2';
 
 
-const categoryStore = useCategoryStore();
+const customerStore = useCustomerStore();
 const showDeleteModal = ref(false);
-const categoryToDelete = ref(null);
+const customerToDelete = ref(null);
 
-categoryStore.fetchCategories();
+customerStore.fetchCustomers();
 
 
 onMounted(() => {
@@ -21,23 +21,23 @@ onMounted(() => {
 });
 
 const fetchNewPage = (page) => {
-    categoryStore.fetchCategories(page);
+    customerStore.fetchCustomers(page);
 }
 
-const addCategory = () => {
-    router.push('/add-category')
+const addCustomer = () => {
+    router.push('/add-customer')
 }
 
 const router = useRouter();
 
-const confirmDelete = (categoryId) => {
-    categoryToDelete.value = categoryId;
+const confirmDelete = (customerId) => {
+    customerToDelete.value = customerId;
     showDeleteModal.value = true;
 }
 
-const deleteCategory = async () => {
+const deleteCustomer = async () => {
     try {
-        await categoryStore.deleteCategory(categoryToDelete.value);
+        await customerStore.deleteCustomer(customerToDelete.value);
         showDeleteModal.value = false;
         Swal.fire({
             toast: true,
@@ -45,10 +45,10 @@ const deleteCategory = async () => {
             position: 'top-end',
             showConfirmButton: false,
             timer: 3000,
-            title: 'Category deleted successfully!',
+            title: 'Customer deleted successfully!',
         });
     } catch (error) {
-        console.error('Error deleting category:', error);
+        console.error('Error deleting customer:', error);
     }
 }
 </script>
@@ -59,7 +59,7 @@ const deleteCategory = async () => {
             <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
                 <!-- Start coding here -->
                 <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
-                    <h2 class="p-5 text-lg">Categories</h2>
+                    <h2 class="p-5 text-lg">Customers</h2>
                     <div
                         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
                         <div class="w-full md:w-1/2">
@@ -82,14 +82,14 @@ const deleteCategory = async () => {
                         </div>
                         <div
                             class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-                            <button type="button" @click="addCategory"
+                            <button type="button" @click="addCustomer"
                                 class="flex items-center justify-center text-white bg-teal-700 hover:bg-teal-800 focus:ring-4 focus:ring-teal-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-teal-600 dark:hover:bg-teal-700 focus:outline-none dark:focus:ring-teal-800">
                                 <svg class="h-3.5 w-3.5 mr-2" fill="currentColor" viewbox="0 0 20 20"
                                     xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
                                     <path clip-rule="evenodd" fill-rule="evenodd"
                                         d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
                                 </svg>
-                                Add Category
+                                Add Customer
                             </button>
                             <div class="flex items-center space-x-3 w-full md:w-auto">
                                 <button id="actionsDropdownButton" data-dropdown-toggle="actionsDropdown"
@@ -184,8 +184,11 @@ const deleteCategory = async () => {
                                 class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th scope="col" class="px-4 py-3">#ID</th>
-                                    <th scope="col" class="px-4 py-3">Category</th>
-                                    <th scope="col" class="px-4 py-3">Description</th>
+                                    <th scope="col" class="px-4 py-3">Name</th>
+                                    <th scope="col" class="px-4 py-3">Email</th>
+                                    <th scope="col" class="px-4 py-3">Phone</th>
+                                    <th scope="col" class="px-4 py-3">Address</th>
+
                                     <th scope="col" class="px-4 py-3">
                                         <span class="sr-only">Actions</span>
                                     </th>
@@ -193,25 +196,28 @@ const deleteCategory = async () => {
                             </thead>
                             <tbody>
 
-                                <tr v-for="category in categoryStore.categories.data" :key="category.id"
+                                <tr v-for="customer in customerStore.customers.data" :key="customer.id"
                                     class="border-b dark:border-gray-700"
-                                    :class="{ 'opacity-50': categoryStore.isLoading && categoryToDelete === category.id }">
-                                    <td class="px-4 py-3">{{ category.id }}</td>
+                                    :class="{ 'opacity-50': customerStore.isLoading && customerToDelete === customer.id }">
+                                    <td class="px-4 py-3">{{ customer.id }}</td>
 
-                                    <td class="px-4 py-3">{{ category.name }}</td>
-                                    <td class="px-4 py-3">{{ category.description }}</td>
+                                    <td class="px-4 py-3">{{ customer.name }}</td>
+                                    <td class="px-4 py-3">{{ customer.email }}</td>
+                                    <td class="px-4 py-3">{{ customer.phone }}</td>
+                                    <td class="px-4 py-3">{{ customer.address }}</td>
+
                                     <td class="px-4 py-3 flex items-center justify-end">
 
                                         <div class="flex items-center">
 
 
-                                            <router-link :to="`/categories/${category.id}/edit`"
+                                            <router-link :to="`/customers/${customer.id}/edit`"
                                                 class="block py-1 px-4 mr-2 text-white rounded-md bg-teal-500 hover:bg-teal-100 dark:hover:bg-teal-600 dark:hover:text-gray-400">
                                                 Edit
                                             </router-link>
 
                                             <div>
-                                                <button @click="confirmDelete(category.id)"
+                                                <button @click="confirmDelete(customer.id)"
                                                     class="block py-1 rounded-md bg-red-800 px-4 text-sm text-white hover:bg-red-300 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-gray-500">
                                                     Delete
                                                 </button>
@@ -227,14 +233,14 @@ const deleteCategory = async () => {
                         <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
                             Showing
                             <span class="font-semibold text-gray-900 dark:text-white">
-                                {{ categoryStore.categories.from ?? 0 }} - {{ categoryStore.categories.to ?? 0 }}
+                                {{ customerStore.customers.from ?? 0 }} - {{ customerStore.customers.to ?? 0 }}
                             </span>
                             of
                             <span class="font-semibold text-gray-900 dark:text-white">
-                                {{ categoryStore.categories.total ?? 0 }}
+                                {{ customerStore.customers.total ?? 0 }}
                             </span>
                         </span>
-                        <TailwindPagination :data="categoryStore.categories" @pagination-change-page="fetchNewPage" />
+                        <TailwindPagination :data="customerStore.customers" @pagination-change-page="fetchNewPage" />
                     </nav>
                 </div>
             </div>
@@ -258,17 +264,17 @@ const deleteCategory = async () => {
                         </button>
                     </div>
                     <p class="mb-6 text-gray-500 dark:text-gray-400">
-                        Are you sure you want to delete this category? This action cannot be undone.
+                        Are you sure you want to delete this customer? This action cannot be undone.
                     </p>
                     <div class="flex justify-end space-x-3">
                         <button @click="showDeleteModal = false"
                             class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700">
                             Cancel
                         </button>
-                        <button @click="deleteCategory"
+                        <button @click="deleteCustomer"
                             class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-900"
-                            :disabled="categoryStore.isLoading">
-                            <span v-if="!categoryStore.isLoading">Delete</span>
+                            :disabled="customerStore.isLoading">
+                            <span v-if="!customerStore.isLoading">Delete</span>
                             <span v-else class="flex items-center">
                                 <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
                                     xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">

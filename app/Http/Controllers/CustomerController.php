@@ -12,23 +12,40 @@ class CustomerController extends Controller
      */
     public function index()
     {
-        //
+        return Customer::paginate(100);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|string|email',
+            'phone' => 'nullable|string',
+            'address' => 'nullable|string',
+        ]);
+
+        if ($validated) {
+            $customer = Customer::create([
+                'name' => $request['name'],
+                'email' => $request['email'],
+                'phone' => $request['phone'],
+                'address' => $request['address'],
+
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Customer created successfully',
+                'data' => $customer
+            ], 201);
+
+        }
+
+
     }
 
     /**
@@ -36,23 +53,25 @@ class CustomerController extends Controller
      */
     public function show(Customer $customer)
     {
-        //
+        return response()->json($customer);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Customer $customer)
-    {
-        //
-    }
 
     /**
      * Update the specified resource in storage.
      */
     public function update(Request $request, Customer $customer)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'nullable|string|email',
+            'phone' => 'nullable|string',
+            'address' => 'nullable|string',
+        ]);
+
+        $customer->update($validated);
+
+        return response()->json($customer);
     }
 
     /**
@@ -60,6 +79,11 @@ class CustomerController extends Controller
      */
     public function destroy(Customer $customer)
     {
-        //
+        try {
+            $customer->delete();
+            return response()->json(['message' => 'Customer deleted successfully']);
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Failed to delete customer'], 500);
+        }
     }
 }

@@ -24,13 +24,14 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable'
+            'description' => 'nullable',
         ]);
         if ($validated) {
             $category = Category::create([
                 'name' => $request->name,
                 'slug' => Str::slug($request->name),
                 'description' => $request->description,
+                'is_active' => $request->is_active,
             ]);
 
             return response()->json([
@@ -55,7 +56,8 @@ class CategoryController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
-            'description' => 'nullable'
+            'description' => 'nullable',
+            'is_active' => 'required|boolean',
         ]);
         $category->update($validated);
         return response()->json($category);

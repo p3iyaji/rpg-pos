@@ -11,14 +11,16 @@ const router = useRouter();
 
 const form = ref({
     name: '',
-    description: ''
+    description: '',
+    is_active: true,
 })
 
 const addUnit = async () => {
 
     const response = await unitStore.createUnit({
         name: form.value.name,
-        description: form.value.description
+        description: form.value.description,
+        is_active: form.value.is_active
     });
 
     if (response) {
@@ -101,6 +103,16 @@ const goBack = () => {
                                 <textarea v-model="form.description" id="description" rows="6"
                                     class="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
                                     placeholder="Enter unit description"></textarea>
+                            </div>
+
+                            <!-- Active Status -->
+                            <div class="flex items-center">
+                                <input v-model="form.is_active" type="checkbox" id="is_active"
+                                    class="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                <label for="is_active"
+                                    class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                    Active
+                                </label>
                             </div>
 
                             <!-- Submit Button -->

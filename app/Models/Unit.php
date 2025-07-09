@@ -11,6 +11,12 @@ class Unit extends Model
     protected $fillable = [
         'name',
         'slug',
-        'description'
+        'description',
+        'is_active',
+    ];
+
+
+    protected $casts = [
+        'is_active' => 'boolean'
     ];
 }

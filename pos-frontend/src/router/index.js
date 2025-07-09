@@ -16,7 +16,12 @@ import Addproduct from '@/views/products/Addproduct.vue';
 import UpdateProduct from '@/views/products/UpdateProduct.vue';
 import ForgotPassword from '@/views/Auth/ForgotPassword.vue';
 import POS from '@/views/products/POS.vue';
-
+import DiscountList from '@/views/discounts/DiscountList.vue';
+import AddDiscount from '@/views/discounts/AddDiscount.vue';
+import UpdateDiscount from '@/views/discounts/UpdateDiscount.vue';
+import CustomerList from '@/views/customers/CustomerList.vue';
+import AddCustomer from '@/views/customers/AddCustomer.vue';
+import UpdateCustomer from '@/views/customers/UpdateCustomer.vue';
 
 const routes = [
     {
@@ -115,7 +120,44 @@ const routes = [
         name: 'pos',
         component: POS,
         meta: { requiresAuth: true },
-    }
+    },
+    {
+        path: '/discounts',
+        name: 'discounts',
+        component: DiscountList,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/add-discount',
+        name: 'add-discount',
+        component: AddDiscount,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/discounts/:id/edit',
+        name: 'update-discount',
+        component: UpdateDiscount,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/customers',
+        name: 'customers',
+        component: CustomerList,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/add-customer',
+        name: 'add-customer',
+        component: AddCustomer,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/customers/:id/edit',
+        name: 'update-customer',
+        component: UpdateCustomer,
+        meta: { requiresAuth: true }
+    },
+
 
 
 ];
