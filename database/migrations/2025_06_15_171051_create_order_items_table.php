@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->unsignedBigInteger('order_id');
             $table->unsignedBigInteger('product_id');
+            $table->foreignId('discount_id')->nullable()->constrained('discounts');
             $table->integer('quantity');
             $table->decimal('unit_price', 10, 2);
             $table->decimal('discount_amount', 10, 2)->default(0);

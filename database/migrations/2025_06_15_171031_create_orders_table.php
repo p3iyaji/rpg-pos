@@ -18,9 +18,15 @@ return new class extends Migration {
             $table->enum('status', ['pending', 'processing', 'completed', 'cancelled', 'refunded'])->default('pending');
             $table->decimal('subtotal', 10, 2);
             $table->decimal('tax_amount', 10, 2)->default(0);
-            $table->decimal('discount_amount', 10, 2)->default(0);
+            $table->decimal('total_discount', 10, 2)->default(0);
+            $table->decimal('product_discounts', 10, 2)->default(0);
+            $table->decimal('general_discount', 10, 2)->default(0);
+            $table->foreignId('general_discount_id')->nullable()->constrained('discounts');
             $table->decimal('total', 10, 2);
             $table->text('notes')->nullable();
+            $table->string('payment_method')->default('cash');
+            $table->decimal('amount_tendered', 10, 2)->default(0);
+            $table->decimal('change_due', 10, 2)->default(0);
             $table->timestamps();
             $table->softDeletes();
 

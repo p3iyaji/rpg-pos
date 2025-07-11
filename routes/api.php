@@ -35,3 +35,4 @@ Route::get('/pos-products', [PosController::class, 'posProducts'])->middleware('
 Route::get('/pos-categories', [PosController::class, 'posCategories'])->middleware('auth:sanctum');
 Route::get('/pos-discounts/validate', [PosController::class, 'validateDiscount'])->middleware('auth:sanctum');
 Route::post('/pos-orders', [PosController::class, 'posOrders'])->middleware('auth:sanctum');
+Route::get('/api/pos-products/{product}/discounts', [PosController::class, 'productDiscounts']);

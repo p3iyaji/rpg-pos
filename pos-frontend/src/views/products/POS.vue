@@ -1,6 +1,11 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
+import { useRouter } from 'vue-router';
 import axios from 'axios'
+import Calculator from '@/components/Calculator.vue';
+import Swal from 'sweetalert2'
+
+import PaymentMethod from '@/components/PaymentMethod.vue';
 
 // State
 const products = ref([])
@@ -11,9 +16,81 @@ const activeCategory = ref(null)
 const discountCode = ref('')
 const appliedDiscount = ref(null)
 const discountError = ref(null)
+const categoriesContainer = ref(null);
+
+const appliedProductDiscounts = ref({});
+const appliedGeneralDiscount = ref(null);
 
 const baseUrl = import.meta.env.VITE_API_BASE_URL;
 
+const router = useRouter();
+
+const showCalculator = ref(false);
+const isFullScreen = ref(false);
+
+const toggleCalculator = () => {
+    showCalculator.value = !showCalculator.value;
+}
+
+const toggleFullScreen = () => {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(error => {
+            console.error(`Error attempting to enable full screen: ${error.message}`)
+        })
+        isFullScreen.value = true;
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen()
+            isFullScreen.value = false;
+        }
+    }
+}
+
+//customer handling area
+const customers = ref([]);
+const selectedCustomer = ref(null);
+const showCustomerModal = ref(false);
+const newCustomer = ref({
+    name: '',
+    phone: '',
+    email: '',
+    address: ''
+});
+
+const fetchCustomers = async () => {
+    try {
+        const response = await axios.get('/api/customers');
+        customers.value = response.data.data;
+        // Set default customer (ID 1) if exists
+        const defaultCustomer = customers.value.find(c => c.id === 1);
+        selectedCustomer.value = defaultCustomer || (customers.value.length > 0 ? customers.value[0] : null);
+    } catch (error) {
+        console.error('Error fetching customers:', error);
+    }
+};
+
+const addNewCustomer = async () => {
+    try {
+        const response = await axios.post('/api/customers', newCustomer.value);
+        customers.value.push(response.data);
+        selectedCustomer.value = response.data;
+        showCustomerModal.value = false;
+        // Reset form
+        newCustomer.value = { name: '', phone: '', email: '', address: '' };
+        await fetchCustomers();
+
+    } catch (error) {
+        console.error('Error adding customer:', error);
+    }
+};
+
+const openCustomerModal = () => {
+    showCustomerModal.value = true;
+};
+
+const handleCalculatorValue = (value) => {
+    searchQuery.value = value;
+};
 
 // Computed
 const filteredProducts = computed(() => {
@@ -36,18 +113,96 @@ const filteredProducts = computed(() => {
 
 const subtotal = computed(() =>
     cart.value.reduce((sum, item) => sum + item.product.price * item.quantity, 0)
-)
+);
+
+const productDiscounts = computed(() => {
+    return cart.value.reduce((sum, item) => {
+        const discount = appliedProductDiscounts.value[item.product.id];
+        if (discount) {
+            return sum + discount.calculateDiscount(item.product.price * item.quantity);
+        }
+        return sum;
+    }, 0);
+});
+
+const generalDiscount = computed(() => {
+    if (!appliedGeneralDiscount.value) return 0;
+    const discountableAmount = subtotal.value - productDiscounts.value;
+    return appliedGeneralDiscount.value.calculateDiscount(discountableAmount);
+});
 
 const discountAmount = computed(() => {
     if (!appliedDiscount.value) return 0
     return appliedDiscount.value.calculateDiscount(subtotal.value)
 })
 
+const totalDiscount = computed(() =>
+    productDiscounts.value + generalDiscount.value
+);
+
 const total = computed(() =>
-    subtotal.value - discountAmount.value
-)
+    subtotal.value - productDiscounts.value - generalDiscount.value
+);
 
 // Methods
+
+
+const applyProductDiscount = async (productId) => {
+    const product = cart.value.find(item => item.product.id === productId)?.product;
+    if (!product) return;
+
+    try {
+        const response = await axios.get('/api/pos-discounts/validate', {
+            params: {
+                code: discountCode.value,
+                product_id: productId,
+                amount: product.price,
+                quantity: 1
+            }
+        });
+
+        if (response.data.valid && response.data.scope === 'product') {
+            const discount = response.data.discount;
+            discount.calculateDiscount = (amount) => {
+                if (discount.type === 'fixed') return Math.min(discount.value, amount);
+                if (discount.type === 'percentage') return amount * (discount.value / 100);
+                return 0;
+            };
+
+            appliedProductDiscounts.value[productId] = discount;
+            discountCode.value = '';
+        }
+    } catch (error) {
+        console.error(error);
+    }
+};
+
+const applyGeneralDiscount = async () => {
+    try {
+        const response = await axios.get('/api/pos-discounts/validate', {
+            params: {
+                code: discountCode.value,
+                amount: subtotal.value,
+                quantity: cart.value.reduce((sum, item) => sum + item.quantity, 0)
+            }
+        });
+
+        if (response.data.valid && response.data.scope === 'general') {
+            const discount = response.data.discount;
+            discount.calculateDiscount = (amount) => {
+                if (discount.type === 'fixed') return Math.min(discount.value, amount);
+                if (discount.type === 'percentage') return amount * (discount.value / 100);
+                return 0;
+            };
+
+            appliedGeneralDiscount.value = discount;
+            discountCode.value = '';
+        }
+    } catch (error) {
+        console.error(error);
+    }
+};
+
 const fetchProducts = async () => {
     try {
         const response = await axios.get('/api/pos-products')
@@ -77,7 +232,7 @@ const addToCart = (product) => {
         }
     } else {
         if (product.quantity > 0) {
-            cart.value.push({ product, quantity: 1 })
+            cart.value.push({ product, quantity: 1, originalQuantity: product.quantity });
         } else {
             alert('This product is out of stock')
         }
@@ -124,73 +279,228 @@ const clearCategoryFilter = () => {
 }
 
 const applyDiscount = async () => {
-    discountError.value = null
+    discountError.value = null;
+    appliedDiscount.value = null;
 
     if (!discountCode.value) {
-        discountError.value = 'Please enter a discount code'
-        return
+        discountError.value = 'Please enter a discount code';
+        return;
     }
 
     try {
-        const response = await axios.get(`/api/pos-discounts/validate?code=${discountCode.value}&amount=${subtotal.value}&quantity=${cart.value.reduce((sum, item) => sum + item.quantity, 0)}`)
+        // First try to apply as general discount
+        let response = await axios.get('/api/pos-discounts/validate', {
+            params: {
+                code: discountCode.value,
+                amount: subtotal.value,
+                quantity: cart.value.reduce((sum, item) => sum + item.quantity, 0)
+            }
+        });
 
         if (response.data.valid) {
-            appliedDiscount.value = response.data.discount
+            const discount = response.data.discount;
+
+            // Add calculation method
+            discount.calculateDiscount = (amount) => {
+                if (discount.type === 'fixed') {
+                    return Math.min(discount.value, amount);
+                } else if (discount.type === 'percentage') {
+                    return amount * (discount.value / 100);
+                }
+                return 0;
+            };
+
+            // Apply based on scope
+            if (response.data.scope === 'product') {
+                // If it's a product discount but no product specified, try each product
+                if (!response.data.applicable_to?.product_id) {
+                    discountError.value = 'This discount requires selecting a specific product';
+                    return;
+                }
+                appliedProductDiscounts.value[response.data.applicable_to.product_id] = discount;
+            } else {
+                appliedGeneralDiscount.value = discount;
+            }
+
+            discountCode.value = '';
+            discountError.value = null;
         } else {
-            discountError.value = response.data.message || 'Discount is not applicable'
+            // If general discount failed, try for each product in cart
+            for (const item of cart.value) {
+                response = await axios.get('/api/pos-discounts/validate', {
+                    params: {
+                        code: discountCode.value,
+                        product_id: item.product.id,
+                        amount: item.product.price * item.quantity,
+                        quantity: item.quantity
+                    }
+                });
+
+                if (response.data.valid && response.data.scope === 'product') {
+                    const discount = response.data.discount;
+                    discount.calculateDiscount = (amount) => {
+                        if (discount.type === 'fixed') return Math.min(discount.value, amount);
+                        if (discount.type === 'percentage') return amount * (discount.value / 100);
+                        return 0;
+                    };
+
+                    appliedProductDiscounts.value[item.product.id] = discount;
+                    discountCode.value = '';
+                    discountError.value = null;
+                    return; // Exit after first successful application
+                }
+            }
+
+            // If we get here, no valid application was found
+            discountError.value = response.data.message || 'Discount is not applicable to any products';
         }
     } catch (error) {
-        discountError.value = error.response?.data?.message || 'Error applying discount'
-        console.error('Error applying discount:', error)
+        discountError.value = error.response?.data?.message || 'Error applying discount';
+        console.error('Error applying discount:', error);
     }
-}
+};
 
-const completeOrder = async () => {
+const getProductName = (productId) => {
+    const item = cart.value.find(item => item.product.id === productId);
+    return item ? item.product.name : '';
+};
+
+const getProductTotal = (productId) => {
+    const item = cart.value.find(item => item.product.id === productId);
+    return item ? item.product.price * item.quantity : 0;
+};
+
+const removeProductDiscount = (productId) => {
+    delete appliedProductDiscounts.value[productId];
+};
+
+const removeGeneralDiscount = () => {
+    appliedGeneralDiscount.value = null;
+};
+
+const handlePaymentCompleted = (paymentData) => {
+    completeOrder(paymentData);
+};
+
+const completeOrder = async (paymentData) => {
     if (cart.value.length === 0) {
-        alert('Your cart is empty')
-        return
+        alert('Your cart is empty');
+        return;
+    }
+
+    if (!selectedCustomer.value) {
+        alert('Please select a customer before completing the order');
+        return;
     }
 
     try {
         const orderData = {
+            customer_id: selectedCustomer.value?.id || 1,
+            payment_method: paymentData.method,
+            amount_tendered: paymentData.amountTendered,
+            change_due: paymentData.changeDue,
             items: cart.value.map(item => ({
                 product_id: item.product.id,
                 quantity: item.quantity,
-                price: item.product.price
+                price: item.product.price,
+                discount_id: appliedProductDiscounts.value[item.product.id]?.id || null
             })),
-            discount_id: appliedDiscount.value?.id || null,
+            subtotal: subtotal.value,
+            product_discounts: productDiscounts.value || 0,
+            general_discount: generalDiscount.value || 0,
             total_amount: total.value
         }
 
-        await axios.post('/api/pos-orders', orderData)
-        alert('Order completed successfully!')
-        clearCart()
+        console.log(orderData);
+
+        const response = await axios.post('/api/pos-orders', orderData);
+
+        if (response.data.success) {
+            await Swal.fire({
+                title: 'Success!',
+                text: 'Order completed successfully!',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#1e40af',
+                timer: 3000,
+                timerProgressBar: true,
+                didClose: () => {
+                    resetPosState();
+                }
+            })
+        } else {
+            await Swal.fire({
+                title: 'Error!',
+                text: response.data.message || 'Error completing order',
+                icon: 'error',
+                confirmButtonText: 'Try Again',
+                confirmButtonColor: '#dc2626'
+            })
+        }
     } catch (error) {
-        console.error('Error completing order:', error)
-        alert('Error completing order. Please try again.')
+        console.error('Error completing order:', error);
+        if (error.response) {
+            console.error('Response data:', error.response.data);
+            console.error('Response status:', error.response.status);
+        }
+        alert(error.response?.data?.message || 'Error completing order. Please try again.');
     }
 }
 
+// Add this new method to reset the POS state
+const resetPosState = () => {
+    // Clear the cart
+    cart.value = [];
+
+    // Reset all discounts
+    appliedProductDiscounts.value = {};
+    appliedGeneralDiscount.value = null;
+    discountCode.value = '';
+    discountError.value = null;
+
+    // Reset search and filters
+    searchQuery.value = '';
+    activeCategory.value = null;
+
+    // Refresh product data to get updated stock quantities
+    fetchProducts();
+
+    // If you're using categories that might change
+    fetchCategories();
+
+    fetchCustomers();
+
+}
+
 const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'GBP'
+    const formattedAmount = new Intl.NumberFormat('en-US', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
     }).format(amount)
+
+    return `₦${formattedAmount}`;
 }
 
 
 const scrollCategories = (direction) => {
-    const container = this.$refs.categoriesContainer;
-    const scrollAmount = 200; // Adjust this value as needed
-    container.scrollBy({
-        left: direction * scrollAmount,
-        behavior: 'smooth'
-    });
+    if (categoriesContainer.value) {
+        const scrollAmount = 200;
+        categoriesContainer.value.scrollBy({
+            left: direction * scrollAmount,
+            behavior: 'smooth'
+        });
+    }
+};
+
+const goBack = () => {
+    router.go(-1);
 }
+
 // Lifecycle
 onMounted(() => {
     fetchProducts()
     fetchCategories()
+    fetchCustomers()
 })
 
 
@@ -206,28 +516,61 @@ onMounted(() => {
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                 <!-- product selection area starts -->
                 <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
+                    <div class="mb-6">
+
+                        <div class="flex justify-between items-center mt-2">
+                            <div class="flex space-x-2">
+                                <button @click="toggleCalculator"
+                                    class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round"
+                                            d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V13.5Zm0 2.25h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V18Zm2.498-6.75h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V13.5Zm0 2.25h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V18Zm2.504-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5Zm0 2.25h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V18Zm2.498-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5ZM8.25 6h7.5v2.25h-7.5V6ZM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.65 4.5 4.757V19.5a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25V4.757c0-1.108-.806-2.057-1.907-2.185A48.507 48.507 0 0 0 12 2.25Z" />
+                                    </svg>
+                                </button>
+                                <button @click="toggleFullScreen"
+                                    class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                        viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                    </svg>
+                                </button>
+                            </div>
+
+                            <button @click="goBack" type="button"
+                                class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
                     <div clas="mb-6">
-                        <input v-model="searchQuery" type="text" placeholder="Search products..." class="w-full p-3 border border-teal-300 rounded-ls focus:outline-none focus:ring-2
+                        <input v-model="searchQuery" type="text" placeholder="Search products..." class="w-full p-3 border border-teal-300 rounded-md focus:outline-none focus:ring-2
                              focus:ring-teal-500">
                     </div>
 
-                    <div class="mb-6 relative px-5">
+
+
+                    <div class="mb-6 relative">
                         <!-- Left arrow (shown when scrollable to left) -->
                         <button
-                            class="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-teal-800 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-teal-600 transition"
+                            class="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white text-teal-800 border border-teal-800 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-teal-600 transition"
                             @click="scrollCategories(-1)">
                             &larr;
                         </button>
 
                         <!-- Right arrow (shown when scrollable to right) -->
                         <button
-                            class="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-teal-800 text-white rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-teal-600 transition"
+                            class="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white text-teal-800 border border-teal-800 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-teal-600 transition"
                             @click="scrollCategories(1)">
                             &rarr;
                         </button>
 
                         <div ref="categoriesContainer"
-                            class="flex space-x-2 p-2 overflow-x-auto pb-2 mt-5 mb-5 border border-teal-800 shadow-lg scrollbar-hide">
+                            class="flex rounded-md p-2 space-x-2 p-2 overflow-x-auto pb-2 mt-5 mb-5 border border-teal-800 shadow-lg scrollbar-hide">
                             <button v-for="category in categories" :key="category.id"
                                 @click="filterByCategory(category.id)"
                                 :class="{ 'bg-teal-800 text-white': activeCategory === category.id }"
@@ -268,10 +611,24 @@ onMounted(() => {
                     </div>
                 </div>
 
+
                 <!-- product selection area ends -->
 
                 <!-- Cart starts -->
                 <div class="bg-white rounded-lg shadow p-6">
+                    <div class="mb-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <label class="block text-sm font-medium text-teal-700">Customer</label>
+                            <button @click="openCustomerModal" class="text-sm text-teal-600 hover:text-teal-800">
+                                + Add New Customer
+                            </button>
+                        </div>
+                        <select v-model="selectedCustomer" class="w-full p-2 border border-teal-300 rounded-lg">
+                            <option v-for="customer in customers" :key="customer.id" :value="customer">
+                                {{ customer.name }} ({{ customer.phone }})
+                            </option>
+                        </select>
+                    </div>
                     <h2 class="text-xl font-bold mb-4">Current Order</h2>
                     <div v-if="cart.length === 0" class="text-teal-500 text-center py-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2" fill="none"
@@ -283,22 +640,77 @@ onMounted(() => {
                         <p class="text-sm">Select products to add to your order</p>
                     </div>
 
+
                     <div v-else>
+                        <!-- Discount application section -->
                         <div class="mb-4">
                             <label class="block text-sm font-medium text-teal-700 mb-1">Discount code</label>
+
+                            <!-- Product selection for discount -->
+                            <select v-model="selectedProductForDiscount"
+                                class="w-full mb-2 p-2 border border-teal-300 rounded-lg">
+                                <option :value="null">Apply to entire order</option>
+                                <option v-for="item in cart" :key="item.product.id" :value="item.product.id">
+                                    Apply to {{ item.product.name }} only
+                                </option>
+                            </select>
+
                             <div class="flex">
                                 <input v-model="discountCode" type="text" placeholder="Enter discount code"
                                     class="flex-1 p-2 border border-teal-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-teal-500">
-                                <button @click="applyDiscount" class="bg-teal-800 text-white px-4 py-2 rounded-r-lg hoaver:bg-blue-700
-                                 transition">
+                                <button @click="applyDiscount"
+                                    class="bg-teal-800 text-white px-4 py-2 rounded-r-lg hover:bg-teal-700 transition">
                                     Apply
                                 </button>
                             </div>
-                            <p v-if="appliedDiscount" class="text-teal-800 text-sm mt-1">
-                                Discount applied: {{ appliedDiscount.name }} (-{{ formatCurrency(discountAmount) }})
-                            </p>
                             <p v-if="discountError" class="text-red-600 text-sm mt-1">{{ discountError }}</p>
                         </div>
+
+                        <!-- Applied discounts display -->
+                        <div v-if="Object.keys(appliedProductDiscounts).length > 0 || appliedGeneralDiscount"
+                            class="mb-4">
+                            <h3 class="text-sm font-medium text-teal-700 mb-2">Applied Discounts</h3>
+
+                            <!-- Product discounts -->
+                            <div v-for="(discount, productId) in appliedProductDiscounts" :key="productId"
+                                class="flex justify-between items-center mb-1">
+                                <div>
+                                    <span class="text-green-600">Product Discount:</span>
+                                    <span class="ml-1">{{ getProductName(productId) }} - {{ discount.name }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-green-600 mr-2">-{{
+                                        formatCurrency(discount.calculateDiscount(getProductTotal(productId))) }}</span>
+                                    <button @click="removeProductDiscount(productId)"
+                                        class="text-red-500 hover:text-red-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- General discount -->
+                            <div v-if="appliedGeneralDiscount" class="flex justify-between items-center">
+                                <div>
+                                    <span class="text-green-600">Order Discount:</span>
+                                    <span class="ml-1">{{ appliedGeneralDiscount.name }}</span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-green-600 mr-2">-{{ formatCurrency(generalDiscount) }}</span>
+                                    <button @click="removeGeneralDiscount" class="text-red-500 hover:text-red-700">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none"
+                                            viewBox="0 0 24 24" stroke="currentColor">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
                         <div class="border-b border-teal-200 pb-2 mb-4">
                             <div v-for="(item, index) in cart" :key="index"
                                 class="flex items-center py-2 border-b border-teal-100">
@@ -347,24 +759,35 @@ onMounted(() => {
                                 </div>
                             </div>
 
+                            <!-- Order summary -->
                             <div class="space-y-2 mb-6">
+                                <!-- Subtotal -->
                                 <div class="flex justify-between">
                                     <span>Subtotal:</span>
                                     <span>{{ formatCurrency(subtotal) }}</span>
                                 </div>
-                                <div v-if="appliedDiscount" class="flex justify-between text-teal-800">
-                                    <span>{{ formatCurrency(subtotal) }}</span>
+
+                                <!-- Product Discounts -->
+                                <div v-if="productDiscounts > 0" class="flex justify-between text-green-600">
+                                    <span>Product Discounts:</span>
+                                    <span>-{{ formatCurrency(productDiscounts) }}</span>
                                 </div>
-                                <div v-if="appliedDiscount" class="flex justify-between text-green-600">
-                                    <span>Discount ({{ appliedDiscount.name }}):</span>
-                                    <span>-{{ formatCurrency(discountAmount) }}</span>
+
+                                <!-- General Discount -->
+                                <div v-if="generalDiscount > 0" class="flex justify-between text-green-600">
+                                    <span>Order Discount:</span>
+                                    <span>-{{ formatCurrency(generalDiscount) }}</span>
                                 </div>
+
+                                <!-- Total -->
                                 <div class="flex justify-between font-bold text-lg border-t border-gray-200 pt-2 mt-2">
                                     <span>Total:</span>
                                     <span>{{ formatCurrency(total) }}</span>
                                 </div>
                             </div>
                             <div class="space-y-3">
+                                <PaymentMethod :total-amount="total" @payment-completed="handlePaymentCompleted" />
+
                                 <button @click="completeOrder" class="w-full bg-teal-800 text-white py-3 rounded-lg *:font-bold
                                 hover:bg-teal-700 transition">
                                     Complete Order
@@ -379,6 +802,43 @@ onMounted(() => {
                 </div>
             </div>
         </div>
+        <!-- Customer Modal -->
+        <div v-if="showCustomerModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 class="text-lg font-bold mb-4">Add New Customer</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Name</label>
+                        <input v-model="newCustomer.name" type="text" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone</label>
+                        <input v-model="newCustomer.phone" type="text" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <input v-model="newCustomer.email" type="email" class="w-full p-2 border rounded">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Address</label>
+                        <textarea v-model="newCustomer.address" class="w-full p-2 border rounded"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button @click="showCustomerModal = false" class="px-4 py-2 bg-gray-200 rounded-lg">
+                        Cancel
+                    </button>
+                    <button @click="addNewCustomer" class="px-4 py-2 bg-teal-800 text-white rounded-lg">
+                        Save Customer
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Calculator Popup -->
+        <Calculator v-if="showCalculator" @close="showCalculator = false" @apply="handleCalculatorValue" />
     </div>
 </template>
 
@@ -390,5 +850,18 @@ onMounted(() => {
 
 .scrollbar-hide::-webkit-scrollbar {
     display: none;
+}
+
+.payment-method {
+    transition: all 0.2s ease;
+}
+
+.payment-method.selected {
+    background-color: #1e40af;
+    color: white;
+}
+
+.payment-method:not(.selected):hover {
+    background-color: #e5e7eb;
 }
 </style>

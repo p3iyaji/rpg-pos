@@ -21,6 +21,12 @@ class UnitSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'name' => 'Tubbers',
+                'slug' => 'tubbers',
+                'description' => 'Standard for some root crops',
+                'is_active' => true,
+            ],
+            [
                 'name' => 'Derica',
                 'slug' => 'derica',
                 'description' => 'Tomato paste tin used as a unit (≈ 1/4 of an olonka)',

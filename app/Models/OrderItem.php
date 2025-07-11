@@ -20,6 +20,7 @@ class OrderItem extends Model
         'product_id',
         'quantity',
         'unit_price',
+        'discount_id',
         'discount_amount',
         'tax_amount',
         'total_price'

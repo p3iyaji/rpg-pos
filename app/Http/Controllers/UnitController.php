@@ -36,8 +36,9 @@ class UnitController extends Controller
             ]);
 
             return response()->json([
-                'message' => 'Unit created successfully',
-                'unit' => $unit,
+                'success' => true,
+                'message' => 'Customer created successfully',
+                'data' => $unit
             ], 201);
         }
     }

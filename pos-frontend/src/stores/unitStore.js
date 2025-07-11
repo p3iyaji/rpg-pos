@@ -36,20 +36,26 @@ export const useUnitStore = defineStore('unit', () => {
             errorMessage.value = {};
 
             const response = await axios.post('/api/units', unitData);
-            units.value.push(response.data.unit)
 
-            return response.data;
+            errorMessage.value = {};
+
+            return {
+                success: true,
+                data: response.data
+            };
 
         } catch (error) {
-            if (error instanceof AxiosError && error.response?.status === 422) {
-                errorMessage.value = error.response.data.errors;
+            if (error.response?.status === 422) {
+                errorMessage.value = error.response.data.errors || {};
             } else {
                 errorMessage.value = {
-                    general: [error.response?.data?.message || 'Failed to create unit']
+                    general: [error.response?.data?.message || error.message || 'Failed to create unit']
                 };
             }
-            return null;
-
+            return {
+                success: false,
+                error: errorMessage.value
+            };
         } finally {
             isLoading.value = false;
         }

@@ -64,4 +64,20 @@ class Product extends Model
             ->using(DiscountProduct::class);
     }
 
+    public function applicableDiscounts()
+    {
+        return $this->belongsToMany(Discount::class)
+            ->where(function ($query) {
+                $query->where('scope', 'product')
+                    ->where('is_active', true)
+                    ->where(function ($q) {
+                        $q->where('apply_to_all_products', true)
+                            ->orWhereHas('products', function ($q) {
+                                $q->where('products.id', $this->id);
+                            });
+                    })
+                    ->where('start_date', '<=', now())
+                    ->where('end_date', '>=', now());
+            });
+    }
 }

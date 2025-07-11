@@ -65,7 +65,10 @@ export const useDiscountStore = defineStore('discount', () => {
     const fetchDiscountById = async (id) => {
         try {
             const response = await axios.get(`/api/discounts/${id}`);
-            return response.data;
+            return {
+                ...response.data,
+                product_ids: response.data.products?.map(p => p.id.toString()) || []
+            };
         } catch (err) {
             errorMessage.value = 'Failed to fetch discount';
             return null;

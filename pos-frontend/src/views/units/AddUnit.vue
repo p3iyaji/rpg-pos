@@ -16,30 +16,34 @@ const form = ref({
 })
 
 const addUnit = async () => {
-
-    const response = await unitStore.createUnit({
-        name: form.value.name,
-        description: form.value.description,
-        is_active: form.value.is_active
-    });
-
-    if (response) {
-        Swal.fire({
-            toast: true,
-            icon: 'success',
-            position: 'top-end',
-            showConfirmButton: false,
-            timer: 3000,
-            title: 'Unit created successfully!',
+    try {
+        const { success, data } = await unitStore.createUnit({
+            name: form.value.name,
+            description: form.value.description,
+            is_active: form.value.is_active
         });
-        router.push('/units');
-    } else if (unitStore.errorMessage.general) {
-        Swal.fire({
-            icon: 'error',
-            title: 'Error',
-            text: unitStore.errorMessage.general[0],
-        });
+
+        if (success) {
+            Swal.fire({
+                toast: true,
+                icon: 'success',
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 3000,
+                title: 'Unit created successfully!',
+            });
+            router.push('/units');
+        } else if (unitStore.errorMessage.general) {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: unitStore.errorMessage.general[0],
+            });
+        }
+    } catch (error) {
+        console.error('Error creating unit: ', error);
     }
+
 }
 
 const goBack = () => {

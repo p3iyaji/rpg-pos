@@ -22,6 +22,8 @@ class Discount extends Model
         'min_amount',
         'usage_limit',
         'usage_count',
+        'scope',
+        'apply_to_all_products',
         'is_active'
     ];
 
@@ -31,6 +33,8 @@ class Discount extends Model
         'min_amount' => 'decimal:2',
         'start_date' => 'datetime',
         'end_date' => 'datetime',
+        'scope' => 'string',
+        'apply_to_all_products' => 'boolean',
         'is_active' => 'boolean',
     ];
 
@@ -48,18 +52,48 @@ class Discount extends Model
     /**
      * Check if discount can be applied to given cart/order
      */
-    public function isApplicable(float $amount = null, int $quantity = null): bool
+    public function isApplicable(float $amount = null, int $quantity = null, Product $product = null): bool
     {
         if (!$this->isActive()) {
             return false;
         }
+        // // Check date validity
+        // $now = now();
+        // if ($this->start_date && $now->lt($this->start_date)) {
+        //     return false;
+        // }
+        // if ($this->end_date && $now->gt($this->end_date)) {
+        //     return false;
+        // }
 
-        if ($this->min_amount && $amount < $this->min_amount) {
-            return false;
+        // // Check usage limits
+        // if ($this->usage_limit !== null && $this->usage_count >= $this->usage_limit) {
+        //     return false;
+        // }
+
+        // if ($this->min_amount && $amount < $this->min_amount) {
+        //     return false;
+        // }
+
+        // if ($this->min_quantity && $quantity < $this->min_quantity) {
+        //     return false;
+        // }
+
+        // Product-specific discount checks
+        if ($this->scope === 'product') {
+            if (!$this->apply_to_all_products && (!$product || !$this->products->contains($product))) {
+                return false;
+            }
         }
 
-        if ($this->min_quantity && $quantity < $this->min_quantity) {
-            return false;
+        // General discount checks
+        if ($this->scope === 'general') {
+            if ($this->min_amount && $amount < $this->min_amount) {
+                return false;
+            }
+            if ($this->min_quantity && $quantity < $this->min_quantity) {
+                return false;
+            }
         }
 
         return true;
@@ -74,6 +108,7 @@ class Discount extends Model
             DiscountType::PERCENTAGE => $originalPrice * ($this->value / 100),
             DiscountType::FIXED => min($this->value, $originalPrice),
             DiscountType::BUY_X_GET_Y => 0, // Special case - implement separately
+            default => 0
         };
     }
 
@@ -115,5 +150,10 @@ class Discount extends Model
     public function scopeFixed($query)
     {
         return $query->where('type', DiscountType::FIXED);
+    }
+
+    public function products()
+    {
+        return $this->belongsToMany(Product::class);
     }
 }

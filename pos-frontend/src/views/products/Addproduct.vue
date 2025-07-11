@@ -28,11 +28,11 @@ onMounted(async () => {
 })
 
 const unitOptions = computed(() =>
-    Array.isArray(unitStore.units) ? unitStore.units.map(u => ({ id: u.id, name: u.name })) : []
+    Array.isArray(unitStore.units.data) ? unitStore.units.data.map(u => ({ id: u.id, name: u.name })) : []
 )
 
 const categoryOptions = computed(() =>
-    Array.isArray(categoryStore.categories) ? categoryStore.categories.map(c => ({ id: c.id, name: c.name })) : []
+    Array.isArray(categoryStore.categories.data) ? categoryStore.categories.data.map(c => ({ id: c.id, name: c.name })) : []
 )
 
 const form = ref({

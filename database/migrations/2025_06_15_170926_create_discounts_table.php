@@ -24,6 +24,8 @@ return new class extends Migration {
             $table->integer('usage_limit')->nullable();
             $table->integer('usage_count')->default(0);
             $table->boolean('is_active')->default(true);
+            $table->enum('scope', ['product', 'general'])->default('general');
+            $table->boolean('apply_to_all_products')->default(false);
             $table->timestamps();
         });
     }

@@ -1,11 +1,15 @@
 <script setup>
-import AppLayout from '@/components/AppLayout.vue';
+import Multiselect from '@vueform/multiselect'
+import '@vueform/multiselect/themes/default.css'
 
+import AppLayout from '@/components/AppLayout.vue';
+import axios from 'axios';
 import { useRouter } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
 import { useDiscountStore } from '@/stores/discountStore';
-import { ref } from 'vue';
+import { ref, onMounted, nextTick } from 'vue';
 import Swal from 'sweetalert2';
+
 
 const authStore = useAuthStore();
 const discountStore = useDiscountStore();
@@ -22,9 +26,14 @@ const form = ref({
     min_quantity: null,
     min_amount: null,
     usage_limit: null,
+    scope: 'general',
+    apply_to_all_products: true,
     is_active: true,
+    product_ids: []
 
-})
+});
+
+const products = ref([]);
 
 // Options for <select>
 const discountTypeOptions = [
@@ -33,6 +42,29 @@ const discountTypeOptions = [
     { value: 'buy_x_get_y', label: 'Buy X Get Y Offer' },
 ];
 
+const scopeTypeOptions = [
+    { value: 'general', label: 'General' },
+    { value: 'product', label: 'Product' },
+];
+
+// Load products when component mounts
+onMounted(async () => {
+    try {
+        const response = await axios.get('/api/products');
+        products.value = response.data.data.map(product => ({
+            value: product.id,  // Can be number or string
+            label: product.name
+        }));
+    } catch (error) {
+        console.error('Error loading products:', error);
+    }
+});
+
+const updateSelection = () => {
+    nextTick(() => {
+        form.value.product_ids = [...form.value.product_ids];
+    });
+};
 
 const normalizeBackendData = (data) => {
     return {
@@ -60,7 +92,12 @@ const addDiscount = async () => {
             min_quantity: form.value.min_quantity,
             min_amount: form.value.min_amount,
             usage_limit: form.value.usage_limit,
-            is_active: form.value.is_active
+            scope: form.value.scope,
+            apply_to_all_products: form.value.scope === 'product' ? form.value.apply_to_all_products : null,
+            is_active: form.value.is_active,
+            product_ids: form.value.scope === 'product' && !form.value.apply_to_all_products
+                ? form.value.product_ids
+                : []
         });
 
         if (success) {
@@ -163,7 +200,7 @@ const goBack = () => {
                             <!-- Discount value -->
                             <div>
                                 <label for="value" class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                    Min Amount
+                                    Value
                                 </label>
                                 <input v-model="form.value" type="text" id="value"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
@@ -223,6 +260,53 @@ const goBack = () => {
                                     {{ discountStore.errorMessage.min_amount[0] }}
                                 </span>
                             </div>
+                            <!-- Discount Scope -->
+                            <div>
+                                <label class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    Discount Scope
+                                </label>
+                                <select v-model="form.scope" id="scope"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                    <option v-for="option in scopeTypeOptions" :key="option.value"
+                                        :value="option.value">
+                                        {{ option.label }}
+                                    </option>
+                                </select>
+                                <span v-if="discountStore.errorMessage.scope" class="text-red-600">
+                                    {{ discountStore.errorMessage.scope[0] }}
+                                </span>
+                            </div>
+
+                            <!-- Product-specific options -->
+                            <div v-if="form.scope === 'product'"
+                                class="space-y-4 p-4 border border-gray-200 rounded-lg">
+                                <div class="flex items-center">
+                                    <input v-model="form.apply_to_all_products" type="checkbox"
+                                        id="apply_to_all_products"
+                                        class="w-4 h-4 text-teal-600 bg-gray-100 border-gray-300 rounded focus:ring-teal-500 dark:focus:ring-teal-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600">
+                                    <label for="apply_to_all_products"
+                                        class="ms-2 text-sm font-medium text-gray-900 dark:text-gray-300">
+                                        Apply to all products
+                                    </label>
+                                </div>
+
+                                <div v-if="!form.apply_to_all_products" class="space-y-2">
+                                    <label class="block text-sm font-medium text-gray-900 dark:text-white">
+                                        Select Products
+                                    </label>
+                                    <Multiselect v-model="form.product_ids" :options="products" mode="tags"
+                                        :closeOnSelect="false" :searchable="true" placeholder="Select products"
+                                        trackBy="value" label="label" :object="false" class="multiselect" />
+                                    <p v-if="form.product_ids && form.product_ids.length > 0"
+                                        class="text-xs text-gray-500 dark:text-gray-400">
+                                        Selected: {{ form.product_ids.length }} product(s)
+                                    </p>
+                                    <span v-if="discountStore.errorMessage.product_ids" class="text-red-600 text-sm">
+                                        {{ discountStore.errorMessage.product_ids[0] }}
+                                    </span>
+                                </div>
+                            </div>
+
                             <!-- Active Status -->
                             <div class="flex items-center">
                                 <input v-model="form.is_active" type="checkbox" id="is_active"

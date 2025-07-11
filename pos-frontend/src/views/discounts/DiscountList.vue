@@ -214,7 +214,7 @@ const deleteDiscount = async () => {
                                         <div class="flex items-center">
 
 
-                                            <router-link :to="`/categories/${discount.id}/edit`"
+                                            <router-link :to="`/discounts/${discount.id}/edit`"
                                                 class="block py-1 px-4 mr-2 text-white rounded-md bg-teal-500 hover:bg-teal-100 dark:hover:bg-teal-600 dark:hover:text-gray-400">
                                                 Edit
                                             </router-link>

@@ -10,7 +10,6 @@ import { useAuthStore } from './stores/authStore'
 
 
 
-
 const app = createApp(App);
 const pinia = createPinia();
 

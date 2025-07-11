@@ -18,7 +18,12 @@ class Order extends Model
         'status',
         'subtotal',
         'tax_amount',
-        'discount_amount',
+        'product_discounts',
+        'general_discount',
+        'general_discount_id',
+        'amount_tendered',
+        'change_due',
+        'paymentMethod',
         'total',
         'notes'
     ];
@@ -27,7 +32,8 @@ class Order extends Model
         'status' => OrderStatus::class,
         'subtotal' => 'decimal:2',
         'tax_amount' => 'decimal:2',
-        'discount_amount' => 'decimal:2',
+        'product_discounts' => 'decimal:2',
+        'general_discount' => 'decimal:2',
         'total' => 'decimal:2',
     ];
 
