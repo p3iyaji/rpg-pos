@@ -15,9 +15,27 @@ class DiscountController extends Controller
     /**
      * Display a listing of the resource.
      */
+    // In your DiscountController
     public function index()
     {
-        return Discount::paginate(10);
+        $discounts = Discount::where('is_active', true)
+            ->where('start_date', '<=', now())
+            ->where('end_date', '>=', now())
+            ->get()
+            ->map(function ($discount) {
+                return [
+                    'id' => $discount->id,
+                    'code' => $discount->code,
+                    'name' => $discount->name,
+                    'type' => $discount->type,
+                    'value' => $discount->value,
+                    'scope' => $discount->scope,
+                    'product_ids' => $discount->products->pluck('id')->toArray(),
+                    // Add any other relevant fields
+                ];
+            });
+
+        return response()->json($discounts);
     }
 
 
@@ -26,54 +44,42 @@ class DiscountController extends Controller
      */
     public function store(Request $request)
     {
-
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'code' => 'required|string|unique:discounts,code',
-            'type' => 'required|in:percentage,fixed,buy_x_get_y',
+            'type' => 'required|in:percentage,fixed',
             'value' => 'required|numeric|min:0',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after:start_date',
-            'min_quantity' => 'nullable|integer|min:1',
             'scope' => 'required|in:product,general',
-            'min_amount' => 'nullable|numeric|min:0',
-            'usage_limit' => 'nullable|integer|min:1',
-            'apply_to_all_products' => 'boolean',
             'is_active' => 'boolean',
             'product_ids' => 'nullable|array',
-            'product_ids.*' => 'exists:products,id'
+            'product_ids.*' => 'exists:products,id',
+            'apply_to_all_products' => 'boolean'
         ]);
 
-        $discount = Discount::create([
-            'name' => $validated['name'],
-            'code' => $validated['code'],
-            'type' => $validated['type'],
-            'value' => $validated['value'],
-            'start_date' => $validated['start_date'],
-            'end_date' => $validated['end_date'],
-            'min_quantity' => $validated['min_quantity'] ?? null,
-            'min_amount' => $validated['min_amount'] ?? null,
-            'usage_limit' => $validated['usage_limit'] ?? null,
-            'scope' => $validated['scope'],
-            'apply_to_all_products' => $validated['apply_to_all_products'] ?? false,
-            'is_active' => $validated['is_active'] ?? true,
-        ]);
+        $validated['is_active'] = $validated['is_active'] ?? true;
+        $validated['usage_limit'] = $validated['usage_limit'] ?? null;
+        $validated['min_quantity'] = $validated['min_quantity'] ?? 1;
+        $validated['min_amount'] = $validated['min_amount'] ?? 0;
 
-        // Attach specific products if this is a product discount and not applying to all
-        if (
-            $validated['scope'] === 'product' &&
-            !($validated['apply_to_all_products'] ?? false) &&
-            !empty($validated['product_ids'])
-        ) {
+        $discount = Discount::create($validated);
+
+        // Attach specific products if this is a product discount
+        if ($validated['scope'] === 'product' && !empty($validated['product_ids'])) {
             $discount->products()->sync($validated['product_ids']);
+        }
+
+        // Load the first product if it's a product discount
+        if ($discount->scope === 'product' && $discount->products->count() > 0) {
+            $discount->product_id = $discount->products->first()->id;
         }
 
         return response()->json([
             'success' => true,
             'message' => 'Discount created successfully',
-            'data' => $discount
+            'discount' => $discount->load('products')
         ], 201);
-
     }
 
     /**

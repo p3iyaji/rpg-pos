@@ -6,6 +6,8 @@ import Calculator from '@/components/Calculator.vue';
 import Swal from 'sweetalert2'
 
 import PaymentMethod from '@/components/PaymentMethod.vue';
+import ThermalInvoice from '@/components/ThermalInvoice.vue';
+
 
 // State
 const products = ref([])
@@ -28,6 +30,43 @@ const router = useRouter();
 const showCalculator = ref(false);
 const isFullScreen = ref(false);
 
+//invoice state
+const showInvoice = ref(false);
+const currentOrder = ref(null);
+const businessInfo = ref({
+    name: "RPG-POS",
+    address: "123 Business St, City",
+    phone: "0800-123-4567",
+    footer: "Thank you for your business!"
+});
+
+//discount modal
+const showDiscountModal = ref(false);
+const newDiscount = ref({
+    name: '',
+    code: '',
+    type: 'percentage',
+    value: 0,
+    scope: 'product',
+    product_id: null,
+    start_date: new Date().toISOString().split('T')[0], // Today's date
+    end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], // 30 days from now
+    is_active: true
+});
+
+const openDiscountModal = () => {
+    // Generate a unique code if empty
+    if (!newDiscount.value.code) {
+        newDiscount.value.code = 'DISC-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+    }
+
+    // Set default product if cart has items
+    if (cart.value.length > 0) {
+        newDiscount.value.product_id = cart.value[0].product.id;
+    }
+    showDiscountModal.value = true;
+};
+
 const toggleCalculator = () => {
     showCalculator.value = !showCalculator.value;
 }
@@ -45,6 +84,80 @@ const toggleFullScreen = () => {
         }
     }
 }
+
+const applyNewDiscount = async () => {
+    try {
+        // Basic validation
+        if (!newDiscount.value.name || !newDiscount.value.code || !newDiscount.value.value) {
+            throw new Error('Please fill all required fields');
+        }
+
+        if (newDiscount.value.scope === 'product' && !newDiscount.value.product_id) {
+            throw new Error('Please select a product for product discount');
+        }
+
+        // Prepare the discount data
+        const discountData = {
+            ...newDiscount.value,
+            value: parseFloat(newDiscount.value.value),
+            product_ids: newDiscount.value.scope === 'product' ? [newDiscount.value.product_id] : [],
+            apply_to_all_products: newDiscount.value.scope === 'general'
+        };
+
+        // Save to database
+        const response = await axios.post('/api/pos-discounts', discountData);
+
+        if (response.data.success) {
+            // Apply the discount immediately
+            const discount = response.data.discount;
+            discount.calculateDiscount = (amount) => {
+                if (discount.type === 'fixed') {
+                    return Math.min(discount.value, amount);
+                } else {
+                    return amount * (discount.value / 100);
+                }
+            };
+
+            if (discount.scope === 'product') {
+                // Use the product_id we already have rather than from response
+                appliedProductDiscounts.value[newDiscount.value.product_id] = discount;
+            } else {
+                appliedGeneralDiscount.value = discount;
+            }
+
+            // Reset and close
+            newDiscount.value = {
+                name: '',
+                code: '',
+                type: 'percentage',
+                value: 0,
+                scope: 'product',
+                product_id: cart.value.length > 0 ? cart.value[0].product.id : null,
+                start_date: new Date().toISOString().split('T')[0],
+                end_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+                is_active: true
+            };
+            showDiscountModal.value = false;
+
+            Swal.fire({
+                title: 'Success!',
+                text: 'Discount saved and applied successfully',
+                icon: 'success',
+                confirmButtonText: 'OK',
+                confirmButtonColor: '#1e40af'
+            });
+        }
+    } catch (error) {
+        console.error('Error applying new discount:', error);
+        Swal.fire({
+            title: 'Error!',
+            text: error.response?.data?.message || error.message || 'Error applying discount',
+            icon: 'error',
+            confirmButtonText: 'OK',
+            confirmButtonColor: '#dc2626'
+        });
+    }
+};
 
 //customer handling area
 const customers = ref([]);
@@ -416,6 +529,9 @@ const completeOrder = async (paymentData) => {
         const response = await axios.post('/api/pos-orders', orderData);
 
         if (response.data.success) {
+            currentOrder.value = response.data.order;
+            showInvoice.value = true;
+
             await Swal.fire({
                 title: 'Success!',
                 text: 'Order completed successfully!',
@@ -536,6 +652,7 @@ onMounted(() => {
                                             d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
                                     </svg>
                                 </button>
+
                             </div>
 
                             <button @click="goBack" type="button"
@@ -643,9 +760,14 @@ onMounted(() => {
 
                     <div v-else>
                         <!-- Discount application section -->
-                        <div class="mb-4">
-                            <label class="block text-sm font-medium text-teal-700 mb-1">Discount code</label>
 
+                        <div class="mb-4">
+                            <div class="flex justify-between items-center mb-2">
+                                <label class="block text-sm font-medium text-teal-700">Discount</label>
+                                <button @click="openDiscountModal" class="text-sm text-teal-600 hover:text-teal-800">
+                                    + Add New Discount
+                                </button>
+                            </div>
                             <!-- Product selection for discount -->
                             <select v-model="selectedProductForDiscount"
                                 class="w-full mb-2 p-2 border border-teal-300 rounded-lg">
@@ -839,7 +961,100 @@ onMounted(() => {
         </div>
         <!-- Calculator Popup -->
         <Calculator v-if="showCalculator" @close="showCalculator = false" @apply="handleCalculatorValue" />
+
+        <!-- Discount Modal -->
+        <!-- Discount Modal -->
+        <div v-if="showDiscountModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <h3 class="text-lg font-bold mb-4">Add New Discount</h3>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Discount Name*</label>
+                        <input v-model="newDiscount.name" type="text" class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Discount Code*</label>
+                        <input v-model="newDiscount.code" type="text" class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Discount Type*</label>
+                        <select v-model="newDiscount.type" class="w-full p-2 border rounded">
+                            <option value="percentage">Percentage</option>
+                            <option value="fixed">Fixed Amount</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Value*</label>
+                        <input v-model="newDiscount.value" type="number" class="w-full p-2 border rounded" required>
+                        <p class="text-xs text-gray-500 mt-1" v-if="newDiscount.type === 'percentage'">Enter percentage
+                            (e.g., 10 for 10%)</p>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Scope*</label>
+                        <select v-model="newDiscount.scope" class="w-full p-2 border rounded">
+                            <option value="product">Specific Product</option>
+                            <option value="general">Entire Order</option>
+                        </select>
+                    </div>
+
+                    <div v-if="newDiscount.scope === 'product'">
+                        <label class="block text-sm font-medium text-gray-700">Apply to Product*</label>
+                        <select v-model="newDiscount.product_id" class="w-full p-2 border rounded" required>
+                            <option v-for="item in cart" :value="item.product.id">{{ item.product.name }}</option>
+                        </select>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Start Date</label>
+                            <input v-model="newDiscount.start_date" type="date" class="w-full p-2 border rounded">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">End Date</label>
+                            <input v-model="newDiscount.end_date" type="date" class="w-full p-2 border rounded">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="flex items-center">
+                            <input v-model="newDiscount.is_active" type="checkbox"
+                                class="rounded border-gray-300 text-teal-600 shadow-sm focus:border-teal-300 focus:ring focus:ring-teal-200 focus:ring-opacity-50">
+                            <span class="ml-2 text-sm text-gray-700">Active</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-4">
+                    <button @click="showDiscountModal = false" class="px-4 py-2 bg-gray-200 rounded-lg">
+                        Cancel
+                    </button>
+                    <button @click="applyNewDiscount" class="px-4 py-2 bg-teal-800 text-white rounded-lg">
+                        Save & Apply Discount
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <ThermalInvoice v-if="showInvoice && currentOrder" :order="currentOrder" :business-info="businessInfo"
+            ref="thermalInvoice" />
+
+        <button v-if="showInvoice" @click="$refs.thermalInvoice.printInvoice()"
+            class="fixed bottom-4 right-4 bg-teal-800 text-white p-3 rounded-full shadow-lg z-50">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+            </svg>
+        </button>
     </div>
+
+
 </template>
 
 <style scoped>

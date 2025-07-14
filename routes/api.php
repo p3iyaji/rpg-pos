@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\CategoryController;
+use App\Http\Controllers\OrderController;
 
 
 
@@ -29,6 +30,8 @@ Route::apiResource('units', UnitController::class)->middleware('auth:sanctum');
 Route::apiResource('categories', CategoryController::class)->middleware('auth:sanctum');
 Route::apiResource('products', ProductController::class)->middleware('auth:sanctum');
 Route::apiResource('discounts', DiscountController::class)->middleware('auth:sanctum');
+Route::post('/pos-discounts', [DiscountController::class, 'store'])->name('pos-discounts');
+
 Route::apiResource('customers', CustomerController::class)->middleware('auth:sanctum');
 //pos routes
 Route::get('/pos-products', [PosController::class, 'posProducts'])->middleware('auth:sanctum');
@@ -36,3 +39,6 @@ Route::get('/pos-categories', [PosController::class, 'posCategories'])->middlewa
 Route::get('/pos-discounts/validate', [PosController::class, 'validateDiscount'])->middleware('auth:sanctum');
 Route::post('/pos-orders', [PosController::class, 'posOrders'])->middleware('auth:sanctum');
 Route::get('/api/pos-products/{product}/discounts', [PosController::class, 'productDiscounts']);
+
+//orders 
+Route::apiResource('orders', OrderController::class);

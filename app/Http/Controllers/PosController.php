@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Enums\OrderStatus;
+use App\Http\Resources\OrderResource;
 use App\Models\Order;
 use App\Models\Discount;
 use App\Models\Category;
@@ -137,9 +138,11 @@ class PosController extends Controller
 
             DB::commit();
 
+            $order = Order::with(['items.product', 'customer', 'payments'])->find($order->id);
+
             return response()->json([
                 'success' => true,
-                'order' => $order->load('items')
+                'order' => new OrderResource($order)
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
