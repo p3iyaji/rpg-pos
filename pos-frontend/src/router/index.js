@@ -22,6 +22,8 @@ import UpdateDiscount from '@/views/discounts/UpdateDiscount.vue';
 import CustomerList from '@/views/customers/CustomerList.vue';
 import AddCustomer from '@/views/customers/AddCustomer.vue';
 import UpdateCustomer from '@/views/customers/UpdateCustomer.vue';
+import OrdersList from '@/views/sales/OrdersList.vue';
+import OrderDetails from '@/views/sales/OrderDetails.vue';
 
 const routes = [
     {
@@ -157,6 +159,21 @@ const routes = [
         component: UpdateCustomer,
         meta: { requiresAuth: true }
     },
+    {
+        path: '/sales',
+        name: 'sales',
+        component: OrdersList,
+        meta: { requiresAuth: true }
+
+    },
+    {
+        path: '/orders/:id',
+        name: 'order-details',
+        component: OrderDetails,
+        meta: { requiresAuth: true },
+        props: true
+
+    }
 
 
 

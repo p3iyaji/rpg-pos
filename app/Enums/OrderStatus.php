@@ -9,6 +9,8 @@ enum OrderStatus: string
     case COMPLETED = 'completed';
     case CANCELLED = 'cancelled';
     case REFUNDED = 'refunded';
+    case PARTIALLY_REFUNDED = 'partially_refunded';
+
 
     public function label(): string
     {
@@ -18,6 +20,8 @@ enum OrderStatus: string
             self::COMPLETED => 'Completed',
             self::CANCELLED => 'Cancelled',
             self::REFUNDED => 'Refunded',
+            self::PARTIALLY_REFUNDED => 'Partially_refunded'
+
         };
     }
 
@@ -46,6 +50,10 @@ enum OrderStatus: string
         return $this === self::REFUNDED;
     }
 
+    public function isPartiallyRefunded(): bool
+    {
+        return $this === self::PARTIALLY_REFUNDED;
+    }
     public static function toSelectArray(): array
     {
         return [
@@ -54,6 +62,7 @@ enum OrderStatus: string
             self::COMPLETED->value => self::COMPLETED->label(),
             self::CANCELLED->value => self::CANCELLED->label(),
             self::REFUNDED->value => self::REFUNDED->label(),
+            self::PARTIALLY_REFUNDED->value => self::PARTIALLY_REFUNDED->label(),
 
         ];
     }
@@ -66,6 +75,8 @@ enum OrderStatus: string
             self::COMPLETED => 'bg-green-100 text-green-800',
             self::CANCELLED => 'bg-red-100 text-red-800',
             self::REFUNDED => 'bg-purple-100 text-purple-800',
+            self::PARTIALLY_REFUNDED => 'bg-red-100 text-red-800',
+
         };
     }
 
@@ -82,6 +93,7 @@ enum OrderStatus: string
             self::COMPLETED->value => self::COMPLETED,
             self::CANCELLED->value => self::CANCELLED,
             self::REFUNDED->value => self::REFUNDED,
+            self::PARTIALLY_REFUNDED => self::PARTIALLY_REFUNDED,
             default => null,
         };
     }

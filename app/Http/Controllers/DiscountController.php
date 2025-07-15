@@ -15,28 +15,35 @@ class DiscountController extends Controller
     /**
      * Display a listing of the resource.
      */
-    // In your DiscountController
     public function index()
     {
-        $discounts = Discount::where('is_active', true)
-            ->where('start_date', '<=', now())
-            ->where('end_date', '>=', now())
-            ->get()
-            ->map(function ($discount) {
-                return [
-                    'id' => $discount->id,
-                    'code' => $discount->code,
-                    'name' => $discount->name,
-                    'type' => $discount->type,
-                    'value' => $discount->value,
-                    'scope' => $discount->scope,
-                    'product_ids' => $discount->products->pluck('id')->toArray(),
-                    // Add any other relevant fields
-                ];
-            });
+        $discounts = Discount::where('is_active', true)->paginate(50);
+        return response()->json([
+            'data' => $discounts
+        ]);
 
-        return response()->json($discounts);
     }
+    // public function index()
+    // {
+    //     $discounts = Discount::where('is_active', true)
+    //         ->where('start_date', '<=', now())
+    //         ->where('end_date', '>=', now())
+    //         ->get()
+    //         ->map(function ($discount) {
+    //             return [
+    //                 'id' => $discount->id,
+    //                 'code' => $discount->code,
+    //                 'name' => $discount->name,
+    //                 'type' => $discount->type,
+    //                 'value' => $discount->value,
+    //                 'scope' => $discount->scope,
+    //                 'product_ids' => $discount->products->pluck('id')->toArray(),
+    //                 // Add any other relevant fields
+    //             ];
+    //         });
+
+    //     return response()->json($discounts);
+    // }
 
 
     /**

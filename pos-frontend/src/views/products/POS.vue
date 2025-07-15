@@ -54,6 +54,142 @@ const newDiscount = ref({
     is_active: true
 });
 
+const draftOrders = ref([]);
+const showDraftOrdersModal = ref(false);
+const showRefundModal = ref(false);
+const orderToRefund = ref(null);
+const refundAmount = ref(0);
+const refundReason = ref('');
+const refundPaymentMethod = ref('cash');
+const showRefundSearch = ref(false);
+const refundSearchQuery = ref('');
+const refundSearchResults = ref([]);
+
+const saveAsDraft = () => {
+    if (cart.value.length === 0) {
+        alert('Cannot save an empty cart as draft');
+        return;
+    }
+
+    const draft = {
+        id: Date.now(),
+        customer: selectedCustomer.value,
+        items: cart.value.map(item => ({
+            product: item.product,
+            quantity: item.quantity
+        })),
+        discounts: {
+            productDiscounts: { ...appliedProductDiscounts.value },
+            generalDiscount: appliedGeneralDiscount
+        },
+        subtotal: subtotal.value,
+        totalDiscount: totalDiscount.value,
+        total: total.value,
+        createdAt: new Date().toISOString()
+    };
+
+    draftOrders.value.push(draft);
+    localStorage.setItem('posDrafts', JSON.stringify(draftOrders.value));
+
+    Swal.fire({
+        title: 'Saved!',
+        text: 'Order saved as draft',
+        icon: 'success',
+        confirmButtonText: 'OK'
+    });
+
+    clearCart();
+}
+
+const loadDraft = (draft) => {
+    clearCart();
+
+    //restore customer
+    selectedCustomer.value = draft.customer;
+
+    //restore items
+    draft.items.forEach(item => {
+        const existingProduct = products.value.find(p => p.id === item.product.id);
+        if (existingProduct) {
+            cart.value.push({
+                product: existingProduct,
+                quantity: item.quantity,
+                originalQuantity: existingProduct.quantity
+            });
+        }
+    });
+
+    //restore discounts
+    appliedProductDiscounts.value = { ...draft.discounts.productDiscounts };
+    appliedGeneralDiscount.value = draft.discounts.generalDiscount;
+
+    showDraftOrdersModal.value = false;
+};
+
+const deleteDraft = (draftId) => {
+    draftOrders.value = draftOrders.value.filter(d => d.id !== draftId);
+    localStorage.setItem('posDrafts', JSON.stringify(draftOrders.value));
+};
+
+const openRefundModal = (order) => {
+    orderToRefund.value = order;
+    refundAmount.value = order.total_amount;
+    showRefundModal.value = true;
+};
+
+const searchOrdersForRefund = async () => {
+    try {
+        const response = await axios.post('/api/pos-orders/search', {
+            params: {
+                query: refundSearchQuery.value
+            }
+        });
+        refundSearchResults.value = response.data;
+    } catch (error) {
+        console.error('Error searching orders:', error);
+        Swal.fire({
+            title: 'Error',
+            text: 'Failed to search orders',
+            icon: 'error'
+        });
+    }
+};
+
+const processRefund = async () => {
+    try {
+        const response = await axios.post('/api/pos-orders/refund', {
+            order_id: orderToRefund.value.id,
+            amount: refundAmount.value,
+            reason: refundReason.value,
+            payment_method: refundPaymentMethod.value
+        });
+
+        if (response.data.success) {
+            Swal.fire({
+                title: 'Refund Processed!',
+                text: `Refund of ${formatCurrency(refundAmount.value)} completed`,
+                icon: 'success',
+                confirmButtonText: 'OK'
+            });
+
+            // Reset refund state
+            orderToRefund.value = null;
+            refundAmount.value = 0;
+            refundReason.value = '';
+            showRefundModal.value = false;
+        }
+    } catch (error) {
+        console.error('Refund error:', error);
+        Swal.fire({
+            title: 'Refund Failed',
+            text: error.response?.data?.message || 'Error processing refund',
+            icon: 'error',
+            confirmButtonText: 'OK'
+        });
+    }
+};
+
+
 const openDiscountModal = () => {
     // Generate a unique code if empty
     if (!newDiscount.value.code) {
@@ -614,9 +750,18 @@ const goBack = () => {
 
 // Lifecycle
 onMounted(() => {
+
+    //load drafts from localstorage on mount
+    const savedDrafts = localStorage.getItem('posDrafts');
+    if (savedDrafts) {
+        draftOrders.value = JSON.parse(savedDrafts);
+    }
+
     fetchProducts()
     fetchCategories()
     fetchCustomers()
+
+
 })
 
 
@@ -914,6 +1059,19 @@ onMounted(() => {
                                 hover:bg-teal-700 transition">
                                     Complete Order
                                 </button>
+                                <button @click="saveAsDraft"
+                                    class="w-full bg-yellow-500 text-white py-3 rounded-lg font-bold hover:bg-yellow-600 transition">
+                                    Save as Draft
+                                </button>
+
+                                <button @click="showDraftOrdersModal = true"
+                                    class="w-full bg-blue-500 text-white py-3 rounded-lg font-bold hover:bg-blue-600 transition">
+                                    Load Draft Orders
+                                </button>
+                                <button @click="showRefundSearch = true"
+                                    class="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition">
+                                    Process Refund
+                                </button>
                                 <button @click="clearCart"
                                     class="w-full bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 transition">
                                     Clear Cart
@@ -962,7 +1120,6 @@ onMounted(() => {
         <!-- Calculator Popup -->
         <Calculator v-if="showCalculator" @close="showCalculator = false" @apply="handleCalculatorValue" />
 
-        <!-- Discount Modal -->
         <!-- Discount Modal -->
         <div v-if="showDiscountModal"
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1042,7 +1199,7 @@ onMounted(() => {
         </div>
 
         <ThermalInvoice v-if="showInvoice && currentOrder" :order="currentOrder" :business-info="businessInfo"
-            ref="thermalInvoice" />
+            ref="thermalInvoice" @close="showInvoice = false" />
 
         <button v-if="showInvoice" @click="$refs.thermalInvoice.printInvoice()"
             class="fixed bottom-4 right-4 bg-teal-800 text-white p-3 rounded-full shadow-lg z-50">
@@ -1052,6 +1209,178 @@ onMounted(() => {
                     d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
             </svg>
         </button>
+
+        <!-- Draft Orders Modal -->
+        <div v-if="showDraftOrdersModal"
+            class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl max-h-[80vh] overflow-y-auto">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold">Saved Draft Orders</h3>
+                    <button @click="showDraftOrdersModal = false" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div v-if="draftOrders.length === 0" class="text-center py-8 text-gray-500">
+                    No draft orders saved
+                </div>
+
+                <div v-else class="space-y-4">
+                    <div v-for="draft in draftOrders" :key="draft.id" class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-semibold">Draft #{{ draft.id }}</h4>
+                                <p class="text-sm text-gray-600">
+                                    Customer: {{ draft.customer?.name || 'No customer' }}
+                                </p>
+                                <p class="text-sm text-gray-600">
+                                    {{ new Date(draft.createdAt).toLocaleString() }}
+                                </p>
+                                <p class="text-sm text-gray-600">
+                                    Items: {{ draft.items.length }} | Total: {{ formatCurrency(draft.total) }}
+                                </p>
+                            </div>
+                            <div class="flex space-x-2">
+                                <button @click="loadDraft(draft)"
+                                    class="px-3 py-1 bg-teal-600 text-white rounded hover:bg-teal-700 text-sm">
+                                    Load
+                                </button>
+                                <button @click="deleteDraft(draft.id)"
+                                    class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
+                                    Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Refund Modal -->
+        <div v-if="showRefundModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-md">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold">Process Refund</h3>
+                    <button @click="showRefundModal = false" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Order #</label>
+                        <input :value="orderToRefund?.order_number" type="text" class="w-full p-2 border rounded"
+                            disabled>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Original Amount</label>
+                        <input :value="formatCurrency(orderToRefund?.total)" type="text"
+                            class="w-full p-2 border rounded" disabled>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Refund Amount*</label>
+                        <input v-model.number="refundAmount" type="number" :max="orderToRefund?.total_amount"
+                            class="w-full p-2 border rounded" required>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Payment Method*</label>
+                        <select v-model="refundPaymentMethod" class="w-full p-2 border rounded">
+                            <option value="cash">Cash</option>
+                            <option value="card">Card</option>
+                            <option value="transfer">Bank Transfer</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Reason for Refund</label>
+                        <textarea v-model="refundReason" class="w-full p-2 border rounded" rows="3"></textarea>
+                    </div>
+                </div>
+
+                <div class="flex justify-end space-x-2 mt-6">
+                    <button @click="showRefundModal = false"
+                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                        Cancel
+                    </button>
+                    <button @click="processRefund" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                        Process Refund
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Order Search for Refund Modal -->
+        <div v-if="showRefundSearch" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div class="bg-white rounded-lg p-6 w-full max-w-2xl">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-lg font-bold">Search Order to Refund</h3>
+                    <button @click="showRefundSearch = false" class="text-gray-500 hover:text-gray-700">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+
+                <div class="mb-4">
+                    <div class="relative">
+                        <input v-model="refundSearchQuery" @keyup.enter="searchOrdersForRefund" type="text"
+                            placeholder="Search by order number, customer name, or phone"
+                            class="w-full p-3 border border-gray-300 rounded-lg pr-10">
+                        <button @click="searchOrdersForRefund"
+                            class="absolute right-2 top-1/2 transform -translate-y-1/2 text-gray-500 hover:text-teal-800">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div v-if="refundSearchResults.length === 0" class="text-center py-8 text-gray-500">
+                    <p v-if="refundSearchQuery">No orders found matching "{{ refundSearchQuery }}"</p>
+                    <p v-else>Enter search terms to find orders</p>
+                </div>
+
+                <div v-else class="max-h-[60vh] overflow-y-auto">
+                    <div v-for="order in refundSearchResults" :key="order.id"
+                        class="border-b border-gray-200 py-3 hover:bg-gray-50 cursor-pointer"
+                        @click="openRefundModal(order)">
+                        <div class="flex justify-between items-center">
+                            <div>
+                                <h4 class="font-semibold">Order #{{ order.order_no }}</h4>
+                                <p class="text-sm text-gray-600">
+                                    {{ order.customer?.name || 'No customer' }} |
+                                    {{ formatCurrency(order.total) }} |
+                                    {{ new Date(order.created_at).toLocaleString() }}
+                                </p>
+                            </div>
+                            <div>
+                                <span :class="{
+                                    'bg-green-100 text-green-800': order.status === 'completed',
+                                    'bg-red-100 text-red-800': order.status === 'refunded',
+                                    'bg-yellow-100 text-yellow-800': order.status === 'partially_refunded'
+                                }" class="text-xs px-2 py-1 rounded-full">
+                                    {{ order.status }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
 

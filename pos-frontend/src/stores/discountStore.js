@@ -21,7 +21,7 @@ export const useDiscountStore = defineStore('discount', () => {
         try {
             isLoading.value = true;
             const response = await axios.get(`/api/discounts?page=${page}`);
-            discounts.value = response.data;
+            discounts.value = response.data.data;
 
         } catch (err) {
             errorMessage.value = err.response?.data?.message || 'Failed to fetch discounts';

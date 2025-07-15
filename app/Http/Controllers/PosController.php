@@ -152,4 +152,94 @@ class PosController extends Controller
             ], 500);
         }
     }
+
+    public function saveDraft(Request $request)
+    {
+        $validated = $request->validate([
+            'customer_id' => 'required|exists:customers,id',
+            'items' => 'required|array',
+            'items.*.product_id' => 'required|exists:products,id',
+            'items.*.quantity' => 'required|integer|min:1',
+            'discounts' => 'nullable|array',
+            'subtotal' => 'required|numeric',
+            'total_discount' => 'required|numeric',
+            'total' => 'required|numeric',
+        ]);
+
+        $draft = Order::create([
+            'customer_id' => $validated['customer_id'],
+            'status' => 'draft',
+            'subtotal' => $validated['subtotal'],
+            'product_discounts' => $validated['discounts']['product_discounts'] ?? 0,
+            'general_discount' => $validated['discounts']['general_discount'] ?? 0,
+            'total_amount' => $validated['total'],
+            'is_draft' => true,
+        ]);
+
+        foreach ($validated['items'] as $item) {
+            $draft->items()->create([
+                'product_id' => $item['product_id'],
+                'quantity' => $item['quantity'],
+                'price' => Product::find($item['product_id'])->price,
+            ]);
+        }
+
+        return response()->json([
+            'success' => true,
+            'draft' => $draft,
+        ]);
+    }
+
+    public function getDrafts()
+    {
+        $drafts = Order::where('is_draft', true)
+            ->with(['customer', 'items.product'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            'success' => true,
+            'drafts' => $drafts,
+        ]);
+    }
+
+    public function processRefund(Request $request)
+    {
+        $validated = $request->validate([
+            'order_id' => 'required|exists:orders,id',
+            'amount' => 'required|numeric|min:0.01',
+            'reason' => 'nullable|string',
+            'payment_method' => 'required|in:cash,card,transfer',
+        ]);
+
+        $order = Order::findOrFail($validated['order_id']);
+
+        // Validate refund amount doesn't exceed order total
+        if ($validated['amount'] > $order->total_amount) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Refund amount cannot exceed order total',
+            ], 422);
+        }
+
+        // Create refund record
+        $refund = $order->refunds()->create([
+            'amount' => $validated['amount'],
+            'reason' => $validated['reason'],
+            'payment_method' => $validated['payment_method'],
+            'processed_by' => auth()->id(),
+        ]);
+
+        // Update order status if fully refunded
+        if ($validated['amount'] == $order->total_amount) {
+            $order->update(['status' => 'refunded']);
+        } else {
+            $order->update(['status' => 'partially_refunded']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'refund' => $refund,
+        ]);
+    }
 }

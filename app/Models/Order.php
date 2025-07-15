@@ -82,6 +82,11 @@ class Order extends Model
         return $this->payments()->where('status', 'completed')->sum('amount') >= $this->total;
     }
 
+    public function refunds()
+    {
+        return $this->hasMany(Refund::class);
+    }
+
     public function calculateTotals(): self
     {
         // Ensure items are loaded (won't query if already loaded)

@@ -41,4 +41,9 @@ Route::post('/pos-orders', [PosController::class, 'posOrders'])->middleware('aut
 Route::get('/api/pos-products/{product}/discounts', [PosController::class, 'productDiscounts']);
 
 //orders 
-Route::apiResource('orders', OrderController::class);
+Route::apiResource('orders', OrderController::class)->middleware('auth:sanctum');
+
+Route::post('/pos-orders/draft', [PosController::class, 'saveDraft']);
+Route::get('/pos-orders/drafts', [PosController::class, 'getDrafts']);
+Route::post('/pos-orders/refund', [OrderController::class, 'processRefund']);
+Route::post('/pos-orders/search', [OrderController::class, 'searchOrders']);
