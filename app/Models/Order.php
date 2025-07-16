@@ -25,7 +25,9 @@ class Order extends Model
         'change_due',
         'paymentMethod',
         'total',
-        'notes'
+        'notes',
+        'is_draft',
+        'amount_refunded'
     ];
 
     protected $casts = [

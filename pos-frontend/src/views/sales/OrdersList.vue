@@ -259,7 +259,7 @@ const statusLabels = {
                                     <th scope="col" class="px-4 py-3">Total</th>
                                     <th scope="col" class="px-4 py-3">Amount Tendered</th>
                                     <th scope="col" class="px-4 py-3">Change</th>
-
+                                    <th scope="col" class="px-4 py-3">Refund</th>
                                     <th scope="col" class="px-4 py-3">
                                         <span class="sr-only">Actions</span>
                                     </th>
@@ -285,7 +285,7 @@ const statusLabels = {
                                     <td class="px-4 py-3">{{ order.total }}</td>
                                     <td class="px-4 py-3">{{ order.amount_tendered }}</td>
                                     <td class="px-4 py-3">{{ order.change_due }}</td>
-
+                                    <td class="px-4 py-3">{{ order.amount_refunded }}</td>
 
                                     <td class="px-4 py-3 flex items-center justify-end">
 

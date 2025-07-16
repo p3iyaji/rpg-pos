@@ -62,13 +62,14 @@ class DiscountController extends Controller
             'is_active' => 'boolean',
             'product_ids' => 'nullable|array',
             'product_ids.*' => 'exists:products,id',
-            'apply_to_all_products' => 'boolean'
+            'apply_to_all_products' => 'nullable|boolean'
         ]);
 
         $validated['is_active'] = $validated['is_active'] ?? true;
         $validated['usage_limit'] = $validated['usage_limit'] ?? null;
         $validated['min_quantity'] = $validated['min_quantity'] ?? 1;
         $validated['min_amount'] = $validated['min_amount'] ?? 0;
+        $validated['apply_to_all_products'] = $validated['apply_to_all_products'] ?? false;
 
         $discount = Discount::create($validated);
 

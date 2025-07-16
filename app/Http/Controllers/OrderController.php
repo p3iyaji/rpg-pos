@@ -6,6 +6,8 @@ use App\Models\Order;
 use Illuminate\Http\Request;
 use App\Http\Resources\OrderResource;
 use App\Enums\OrderStatus;
+use App\Models\Product;
+use DB;
 
 class OrderController extends Controller
 {
@@ -123,33 +125,67 @@ class OrderController extends Controller
 
         $order = Order::findOrFail($validated['order_id']);
 
-        // Validate refund amount doesn't exceed order total
-        if ($validated['amount'] > $order->total) {
+        // Validate refund amount doesn't exceed remaining refundable amount
+        $alreadyRefunded = $order->refunds()->sum('amount');
+        $remainingRefundable = $order->total - $alreadyRefunded;
+
+        if ($validated['amount'] > $remainingRefundable) {
             return response()->json([
                 'success' => false,
-                'message' => 'Refund amount cannot exceed order total',
+                'message' => 'Refund amount cannot exceed remaining refundable amount of ' . number_format($remainingRefundable, 2),
             ], 422);
         }
 
-        // Create refund record
-        $refund = $order->refunds()->create([
-            'amount' => $validated['amount'],
-            'reason' => $validated['reason'],
-            'payment_method' => $validated['payment_method'],
-            'processed_by' => auth()->id(),
-        ]);
+        DB::beginTransaction();
 
-        // Update order status
-        if ($validated['amount'] == $order->total) {
-            $order->update(['status' => OrderStatus::REFUNDED->value]);
-        } else {
-            $order->update(['status' => OrderStatus::PARTIALLY_REFUNDED->value]);
+        try {
+            // Create refund record
+            $refund = $order->refunds()->create([
+                'amount' => $validated['amount'],
+                'reason' => $validated['reason'],
+                'payment_method' => $validated['payment_method'],
+                'processed_by' => auth()->id(),
+            ]);
+
+            // Re-stocking not activated yet as I don't think I want staff returning 
+            // ...items to stock without proper check
+            if ($request->has('restock_items') && $request->restock_items) {
+                foreach ($order->items as $item) {
+                    Product::where('id', $item->product_id)
+                        ->increment('quantity', $item->quantity);
+                }
+            }
+
+            // Update order financials
+            $order->update([
+                'product_discounts' => $order->product_discounts,
+                'general_discount' => $order->general_discount,
+                'total' => $order->total, // Keep original total
+                'amount_refunded' => $order->refunds()->sum('amount'),
+            ]);
+
+            // Update order status
+            $refundStatus = ($validated['amount'] == $remainingRefundable)
+                ? OrderStatus::REFUNDED
+                : OrderStatus::PARTIALLY_REFUNDED;
+
+            $order->update(['status' => $refundStatus->value]);
+
+            DB::commit();
+
+            return response()->json([
+                'success' => true,
+                'refund' => $refund,
+                'order' => new OrderResource($order->fresh()),
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return response()->json([
+                'success' => false,
+                'message' => 'Error processing refund: ' . $e->getMessage()
+            ], 500);
         }
-
-        return response()->json([
-            'success' => true,
-            'refund' => $refund,
-        ]);
     }
     /**
      * Show the form for editing the specified resource.

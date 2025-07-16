@@ -27,6 +27,9 @@ return new class extends Migration {
             $table->string('payment_method')->default('cash');
             $table->decimal('amount_tendered', 10, 2)->default(0);
             $table->decimal('change_due', 10, 2)->default(0);
+            $table->boolean(column: 'is_draft')->default(0);
+            $table->decimal('amount_refunded', 10, 2)->default(0);
+
             $table->timestamps();
             $table->softDeletes();
 

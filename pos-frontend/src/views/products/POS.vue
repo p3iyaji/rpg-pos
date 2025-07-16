@@ -799,14 +799,25 @@ onMounted(() => {
                                 </button>
 
                             </div>
+                            <div class="flex space-x-2">
 
-                            <button @click="goBack" type="button"
-                                class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                    stroke-width="1.5" stroke="currentColor" class="size-6">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                </svg>
-                            </button>
+                                <button v-if="draftOrders.length != 0" @click="showDraftOrdersModal = true"
+                                    class="w-32 p-2 bg-blue-500 text-xs text-white py-3 rounded-lg font-bold hover:bg-black transition">
+                                    Load Draft Orders
+                                </button>
+
+                                <button @click="showRefundSearch = true"
+                                    class="w-32 bg-orange-600 text-xs text-white p-2 rounded-lg font-semibold hover:bg-red-700 transition">
+                                    Process Refund
+                                </button>
+                                <button @click="goBack" type="button"
+                                    class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                        stroke-width="1.5" stroke="currentColor" class="size-6">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                    </svg>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div clas="mb-6">
@@ -878,6 +889,7 @@ onMounted(() => {
 
                 <!-- Cart starts -->
                 <div class="bg-white rounded-lg shadow p-6">
+
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <label class="block text-sm font-medium text-teal-700">Customer</label>
@@ -1064,20 +1076,13 @@ onMounted(() => {
                                     Save as Draft
                                 </button>
 
-                                <button @click="showDraftOrdersModal = true"
-                                    class="w-full bg-blue-500 text-white py-3 rounded-lg font-bold hover:bg-blue-600 transition">
-                                    Load Draft Orders
-                                </button>
-                                <button @click="showRefundSearch = true"
-                                    class="w-full bg-red-600 text-white py-3 rounded-lg font-bold hover:bg-red-700 transition">
-                                    Process Refund
-                                </button>
                                 <button @click="clearCart"
                                     class="w-full bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 transition">
                                     Clear Cart
                                 </button>
                             </div>
                         </div>
+
                     </div>
                 </div>
             </div>
@@ -1276,25 +1281,25 @@ onMounted(() => {
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Order #</label>
+                        <label class="block text-sm font-medium text-gray-500">Order #</label>
                         <input :value="orderToRefund?.order_number" type="text" class="w-full p-2 border rounded"
                             disabled>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Original Amount</label>
+                        <label class="block text-sm font-medium text-gray-500">Original Amount</label>
                         <input :value="formatCurrency(orderToRefund?.total)" type="text"
                             class="w-full p-2 border rounded" disabled>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Refund Amount*</label>
+                        <label class="block text-sm font-medium text-gray-500">Refund Amount*</label>
                         <input v-model.number="refundAmount" type="number" :max="orderToRefund?.total_amount"
                             class="w-full p-2 border rounded" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Payment Method*</label>
+                        <label class="block text-sm font-medium text-gray-500">Payment Method*</label>
                         <select v-model="refundPaymentMethod" class="w-full p-2 border rounded">
                             <option value="cash">Cash</option>
                             <option value="card">Card</option>
@@ -1303,17 +1308,18 @@ onMounted(() => {
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Reason for Refund</label>
+                        <label class="block text-sm font-medium text-gray-500">Reason for Refund</label>
                         <textarea v-model="refundReason" class="w-full p-2 border rounded" rows="3"></textarea>
                     </div>
                 </div>
 
                 <div class="flex justify-end space-x-2 mt-6">
                     <button @click="showRefundModal = false"
-                        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300">
+                        class="px-4 py-2 bg-gray-200 text-gray-500 rounded-lg hover:bg-gray-300">
                         Cancel
                     </button>
-                    <button @click="processRefund" class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700">
+                    <button @click="processRefund"
+                        class="px-4 py-2 bg-orange-600 text-white rounded-lg hover:bg-red-700">
                         Process Refund
                     </button>
                 </div>

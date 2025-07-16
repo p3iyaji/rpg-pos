@@ -203,43 +203,5 @@ class PosController extends Controller
         ]);
     }
 
-    public function processRefund(Request $request)
-    {
-        $validated = $request->validate([
-            'order_id' => 'required|exists:orders,id',
-            'amount' => 'required|numeric|min:0.01',
-            'reason' => 'nullable|string',
-            'payment_method' => 'required|in:cash,card,transfer',
-        ]);
 
-        $order = Order::findOrFail($validated['order_id']);
-
-        // Validate refund amount doesn't exceed order total
-        if ($validated['amount'] > $order->total_amount) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Refund amount cannot exceed order total',
-            ], 422);
-        }
-
-        // Create refund record
-        $refund = $order->refunds()->create([
-            'amount' => $validated['amount'],
-            'reason' => $validated['reason'],
-            'payment_method' => $validated['payment_method'],
-            'processed_by' => auth()->id(),
-        ]);
-
-        // Update order status if fully refunded
-        if ($validated['amount'] == $order->total_amount) {
-            $order->update(['status' => 'refunded']);
-        } else {
-            $order->update(['status' => 'partially_refunded']);
-        }
-
-        return response()->json([
-            'success' => true,
-            'refund' => $refund,
-        ]);
-    }
 }
