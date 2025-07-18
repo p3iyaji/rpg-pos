@@ -39,6 +39,7 @@ class OrderController extends Controller
         $summary = [
             'total_item_discounts' => Order::sum('product_discounts'),
             'total_general_discount' => Order::sum('general_discount'),
+            'total_amount_refunded' => Order::sum('amount_refunded'),
             'total_sales' => Order::sum('total'),
             'total_orders' => Order::count(),
         ];

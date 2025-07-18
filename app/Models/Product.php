@@ -14,6 +14,7 @@ class Product extends Model
     protected $fillable = [
         'name',
         'slug',
+        'sku',
         'barcode',
         'description',
         'image',
@@ -80,4 +81,36 @@ class Product extends Model
                     ->where('end_date', '>=', now());
             });
     }
+
+    public function suppliers()
+    {
+        return $this->belongsToMany(Supplier::class)
+            ->withPivot('supplier_product_code', 'cost_price')
+            ->withTimestamps();
+    }
+
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class);
+    }
+
+    public function purchaseOrderItems()
+    {
+        return $this->hasMany(PurchaseOrderItem::class);
+    }
+
+    // Helper method to get current stock level
+    public function currentStock()
+    {
+        return $this->inventoryMovements()->sum('quantity');
+    }
+
+    // Update product quantity based on inventory movements
+    public function updateQuantity()
+    {
+        $this->quantity = $this->currentStock();
+        $this->save();
+    }
+
+
 }

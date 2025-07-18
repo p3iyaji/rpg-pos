@@ -15,7 +15,7 @@ return new class extends Migration {
             $table->string('order_number')->unique();
             $table->unsignedBigInteger('customer_id')->nullable();
             $table->unsignedBigInteger('user_id'); // staff who processed the order
-            $table->enum('status', ['pending', 'processing', 'completed', 'cancelled', 'refunded'])->default('pending');
+            $table->enum('status', ['pending', 'processing', 'completed', 'cancelled', 'refunded', 'partially_refunded'])->default('pending');
             $table->decimal('subtotal', 10, 2);
             $table->decimal('tax_amount', 10, 2)->default(0);
             $table->decimal('total_discount', 10, 2)->default(0);

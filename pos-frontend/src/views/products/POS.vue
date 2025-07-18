@@ -1091,7 +1091,7 @@ onMounted(() => {
         <div v-if="showCustomerModal"
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 class="text-lg font-bold mb-4">Add New Customer</h3>
+                <h3 class="text-lg font-bold mb-4 text-teal-600">Add New Customer</h3>
 
                 <div class="space-y-4">
                     <div>
@@ -1129,21 +1129,21 @@ onMounted(() => {
         <div v-if="showDiscountModal"
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 class="text-lg font-bold mb-4">Add New Discount</h3>
+                <h3 class="text-lg font-bold mb-4 text-teal-600">Add New Discount</h3>
 
                 <div class="space-y-4">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Discount Name*</label>
+                        <label class="block text-sm font-medium text-gray-500">Discount Name*</label>
                         <input v-model="newDiscount.name" type="text" class="w-full p-2 border rounded" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Discount Code*</label>
+                        <label class="block text-sm font-medium text-gray-500">Discount Code*</label>
                         <input v-model="newDiscount.code" type="text" class="w-full p-2 border rounded" required>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Discount Type*</label>
+                        <label class="block text-sm font-medium text-gray-500">Discount Type*</label>
                         <select v-model="newDiscount.type" class="w-full p-2 border rounded">
                             <option value="percentage">Percentage</option>
                             <option value="fixed">Fixed Amount</option>
@@ -1151,14 +1151,14 @@ onMounted(() => {
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Value*</label>
+                        <label class="block text-sm font-medium text-gray-500">Value*</label>
                         <input v-model="newDiscount.value" type="number" class="w-full p-2 border rounded" required>
                         <p class="text-xs text-gray-500 mt-1" v-if="newDiscount.type === 'percentage'">Enter percentage
                             (e.g., 10 for 10%)</p>
                     </div>
 
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Scope*</label>
+                        <label class="block text-sm font-medium text-gray-500">Scope*</label>
                         <select v-model="newDiscount.scope" class="w-full p-2 border rounded">
                             <option value="product">Specific Product</option>
                             <option value="general">Entire Order</option>
@@ -1166,7 +1166,7 @@ onMounted(() => {
                     </div>
 
                     <div v-if="newDiscount.scope === 'product'">
-                        <label class="block text-sm font-medium text-gray-700">Apply to Product*</label>
+                        <label class="block text-sm font-medium text-gray-500">Apply to Product*</label>
                         <select v-model="newDiscount.product_id" class="w-full p-2 border rounded" required>
                             <option v-for="item in cart" :value="item.product.id">{{ item.product.name }}</option>
                         </select>
@@ -1174,11 +1174,11 @@ onMounted(() => {
 
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">Start Date</label>
+                            <label class="block text-sm font-medium text-gray-500">Start Date</label>
                             <input v-model="newDiscount.start_date" type="date" class="w-full p-2 border rounded">
                         </div>
                         <div>
-                            <label class="block text-sm font-medium text-gray-700">End Date</label>
+                            <label class="block text-sm font-medium text-gray-500">End Date</label>
                             <input v-model="newDiscount.end_date" type="date" class="w-full p-2 border rounded">
                         </div>
                     </div>
@@ -1269,7 +1269,7 @@ onMounted(() => {
         <div v-if="showRefundModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md">
                 <div class="flex justify-between items-center mb-4">
-                    <h3 class="text-lg font-bold">Process Refund</h3>
+                    <h3 class="text-lg font-bold text-teal-600">Process Refund</h3>
                     <button @click="showRefundModal = false" class="text-gray-500 hover:text-gray-700">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24"
                             stroke="currentColor">

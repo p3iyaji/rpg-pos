@@ -14,6 +14,7 @@ return new class extends Migration {
             $table->id();
             $table->string('name');
             $table->string('slug');
+            $table->string('sku')->unique()->nullable();
             $table->string('barcode')->nullable()->unique();
             $table->longText('description')->nullable();
             $table->string('image')->nullable();
@@ -24,6 +25,7 @@ return new class extends Migration {
             $table->decimal('cost_price', 8, 2)->nullable();
             $table->integer('quantity')->default(0);
             $table->boolean('is_active')->default(true);
+            $table->index('sku');
             $table->timestamps();
             $table->softDeletes();
 

@@ -35,6 +35,7 @@ class OrderResource extends JsonResource
             'paymentMethod' => $this->paymentMethod,
             'total' => $this->total,
             'date' => $this->created_at,
+            'amount_refunded' => $this->amount_refunded
         ];
     }
 }

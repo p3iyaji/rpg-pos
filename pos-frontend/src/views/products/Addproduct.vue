@@ -322,17 +322,6 @@ const goBack = () => {
                             <!-- Price and Cost Price -->
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label for="price"
-                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
-                                        Selling Price
-                                    </label>
-                                    <input v-model="form.price" type="number" id="price" min="0" step="0.01"
-                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
-                                    <span v-if="productStore.errorMessage.price" class="text-red-600">
-                                        {{ productStore.errorMessage.price[0] }}
-                                    </span>
-                                </div>
-                                <div>
                                     <label for="cost_price"
                                         class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                                         Cost Price
@@ -343,6 +332,18 @@ const goBack = () => {
                                         {{ productStore.errorMessage.cost_price[0] }}
                                     </span>
                                 </div>
+                                <div>
+                                    <label for="price"
+                                        class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                        Selling Price
+                                    </label>
+                                    <input v-model="form.price" type="number" id="price" min="0" step="0.01"
+                                        class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                                    <span v-if="productStore.errorMessage.price" class="text-red-600">
+                                        {{ productStore.errorMessage.price[0] }}
+                                    </span>
+                                </div>
+
                             </div>
 
                             <!-- Quantity -->

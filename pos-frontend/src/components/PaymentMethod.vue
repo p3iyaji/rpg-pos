@@ -77,7 +77,7 @@ const formatCurrency = (amount) => {
         <!-- Payment Modal -->
         <div v-if="showPaymentModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
             <div class="bg-white rounded-lg p-6 w-full max-w-md">
-                <h3 class="text-lg font-bold mb-4">Select Payment Method</h3>
+                <h3 class="text-lg font-bold mb-4 text-teal-600">Select Payment Method</h3>
 
                 <div class="grid grid-cols-3 gap-2 mb-4">
                     <button v-for="method in paymentMethods" :key="method.id" @click="selectedMethod = method" :class="{

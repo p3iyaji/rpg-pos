@@ -79,6 +79,16 @@ class Order extends Model
         return $query->where('status', OrderStatus::PENDING->value);
     }
 
+    public function scopeRefunded($query)
+    {
+        return $query->where('status', OrderStatus::REFUNDED->value);
+    }
+
+    public function scopePartially_Refunded($query)
+    {
+        return $query->where('status', OrderStatus::PARTIALLY_REFUNDED->value);
+    }
+
     public function isPaid(): bool
     {
         return $this->payments()->where('status', 'completed')->sum('amount') >= $this->total;

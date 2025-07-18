@@ -4,6 +4,7 @@ use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\DiscountController;
 use App\Http\Controllers\PosController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\SupplierController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
@@ -47,3 +48,6 @@ Route::post('/pos-orders/draft', [PosController::class, 'saveDraft']);
 Route::get('/pos-orders/drafts', [PosController::class, 'getDrafts']);
 Route::post('/pos-orders/refund', [OrderController::class, 'processRefund']);
 Route::post('/pos-orders/search', [OrderController::class, 'searchOrders']);
+
+//suppliers
+Route::apiResource('suppliers', SupplierController::class)->middleware('auth:sanctum');

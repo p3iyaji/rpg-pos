@@ -50,7 +50,7 @@ enum OrderStatus: string
         return $this === self::REFUNDED;
     }
 
-    public function isPartiallyRefunded(): bool
+    public function isPartially_Refunded(): bool
     {
         return $this === self::PARTIALLY_REFUNDED;
     }

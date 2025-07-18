@@ -24,6 +24,10 @@ import AddCustomer from '@/views/customers/AddCustomer.vue';
 import UpdateCustomer from '@/views/customers/UpdateCustomer.vue';
 import OrdersList from '@/views/sales/OrdersList.vue';
 import OrderDetails from '@/views/sales/OrderDetails.vue';
+import SupplierList from '@/views/suppliers/SupplierList.vue';
+import AddSupplier from '@/views/suppliers/AddSupplier.vue';
+import UpdateSupplier from '@/views/suppliers/UpdateSupplier.vue';
+
 
 const routes = [
     {
@@ -173,7 +177,25 @@ const routes = [
         meta: { requiresAuth: true },
         props: true
 
-    }
+    },
+    {
+        path: '/suppliers',
+        name: 'suppliers',
+        component: SupplierList,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/add-supplier',
+        name: 'add-supplier',
+        component: AddSupplier,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/suppliers/:id/edit',
+        name: 'update-supplier',
+        component: UpdateSupplier,
+        meta: { requiresAuth: true }
+    },
 
 
 

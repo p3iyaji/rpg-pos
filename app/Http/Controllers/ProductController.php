@@ -3,9 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Models\Category;
+use App\Services\SkuService;
 use Illuminate\Http\Request;
 use App\Http\Requests\StoreProductRequest;
 use Illuminate\Support\Str;
+
 use Storage;
 use Auth;
 use Log;
@@ -35,6 +38,19 @@ class ProductController extends Controller
 
         $data['slug'] = Str::slug($validatedData['name']);
         $data['user_id'] = Auth::id();
+
+        // Generate SKU
+        $category = Category::find($validatedData['category_id']);
+
+        if (!$category) {
+            throw new \Exception("Category not found");
+        }
+
+        $nextId = Product::withTrashed()->max('id') ?? 0;
+        $nextId++;
+
+        $skuService = app(SkuService::class);
+        $data['sku'] = $skuService->generateForCategory($category, $nextId);
 
         $product = Product::create($data);
 

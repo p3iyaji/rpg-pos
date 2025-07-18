@@ -1,176 +1,69 @@
 <script setup>
 import AppLayout from '@/components/AppLayout.vue';
-import { useOrderStore } from '@/stores/orderStores';
-import { onMounted, computed, ref, watch } from 'vue';
+
+import { useCustomerStore } from '@/stores/customerStore';
+import { useRouter, RouterLink } from 'vue-router';
+import { onMounted, ref } from 'vue';
 import { TailwindPagination } from 'laravel-vue-pagination';
-import { initFlowbite } from 'flowbite';
+import { initFlowbite } from 'flowbite'
+import Swal from 'sweetalert2';
 
 
-const orderStore = useOrderStore();
-const searchQuery = ref('');
-const debouncedSearchQuery = ref('');
-const debounceTimeout = ref(null);
+const customerStore = useCustomerStore();
+const showDeleteModal = ref(false);
+const customerToDelete = ref(null);
 
-orderStore.fetchOrders();
+customerStore.fetchCustomers();
+
 
 onMounted(() => {
     initFlowbite();
-})
-
-const fetchNewPage = (page) => {
-    orderStore.fetchOrders(page);
-}
-
-const navigateToOrder = (orderId) => {
-    orderStore.fetchOrderById(orderId);
-
-};
-
-//need to come back to this as it is not working well yet
-const summary = computed(() => {
-    return orderStore.summary || {
-        total_item_discounts: 0,
-        total_general_discount: 0,
-        total_sales: 0,
-        total_orders: 0
-    };
 });
 
-const formatCurrency = (amount) => {
-    const formattedAmount = new Intl.NumberFormat('en-US', {
-        minimumFractionDigits: 2,
-        maximumFractionDigits: 2
-    }).format(amount)
-
-    return `₦${formattedAmount}`;
+const fetchNewPage = (page) => {
+    customerStore.fetchCustomers(page);
 }
 
-watch(searchQuery, (newValue) => {
-    clearTimeout(debounceTimeout);
-    debounceTimeout = setTimeout(() => {
-        debouncedSearchQuery.value = newValue;
-        orderStore.fetchOrders(1, newValue);
-    }, 500);
-})
+const addCustomer = () => {
+    router.push('/add-customer')
+}
 
-// Define status colors mapping (should match your PHP enum)
-const statusColors = {
-    pending: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
-    processing: 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300',
-    completed: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300',
-    cancelled: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300',
-    refunded: 'bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300',
-    partially_refunded: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300',
+const router = useRouter();
 
-};
+const confirmDelete = (customerId) => {
+    customerToDelete.value = customerId;
+    showDeleteModal.value = true;
+}
 
-// Define status labels mapping (should match your PHP enum)
-const statusLabels = {
-    pending: 'Pending',
-    processing: 'Processing',
-    completed: 'Completed',
-    cancelled: 'Cancelled',
-    refunded: 'Refunded',
-};
-
-
+const deleteCustomer = async () => {
+    try {
+        await customerStore.deleteCustomer(customerToDelete.value);
+        showDeleteModal.value = false;
+        Swal.fire({
+            toast: true,
+            icon: 'success',
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            title: 'Customer deleted successfully!',
+        });
+    } catch (error) {
+        console.error('Error deleting customer:', error);
+    }
+}
 </script>
-
 
 <template>
     <AppLayout>
         <section class="bg-gray-50 dark:bg-gray-900 p-3 sm:p-5">
             <div class="mx-auto max-w-screen-xl px-4 lg:px-12">
-                <!-- Summary Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
-                    <!-- Total Item Discount -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between">
-                            <div class="min-w-0">
-                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">Item Discount
-                                </p>
-                                <p class="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                                    {{ formatCurrency(summary.total_item_discounts) || '₦0' }}
-                                </p>
-                            </div>
-                            <div class="p-3 rounded-lg bg-teal-100 dark:bg-teal-900 ml-2 flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-teal-600 dark:text-teal-300"
-                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Total General Discount -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between">
-                            <div class="min-w-0">
-                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">General
-                                    Discount</p>
-                                <p class="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                                    {{ formatCurrency(summary.total_general_discount) || '₦0' }}
-                                </p>
-                            </div>
-                            <div class="p-3 rounded-lg bg-yellow-100 dark:bg-yellow-900 ml-2 flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="h-6 w-6 text-yellow-600 dark:text-yellow-300" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M15 5v2m0 4v2m0 4v2M5 5a2 2 0 00-2 2v3a2 2 0 110 4v3a2 2 0 002 2h14a2 2 0 002-2v-3a2 2 0 110-4V7a2 2 0 00-2-2H5z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Total Refund -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between">
-                            <div class="min-w-0">
-                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">Total Refund
-                                </p>
-                                <p class="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                                    {{ formatCurrency(summary.total_amount_refunded) || '₦0' }}
-                                </p>
-                            </div>
-                            <div class="p-3 rounded-lg bg-red-100 dark:bg-red-900 ml-2 flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-600 dark:text-red-300"
-                                    fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Total Sales -->
-                    <div class="bg-white dark:bg-gray-800 rounded-lg shadow p-4 hover:shadow-md transition-shadow">
-                        <div class="flex items-center justify-between">
-                            <div class="min-w-0">
-                                <p class="text-xs font-medium text-gray-500 dark:text-gray-400 truncate">Total Sales</p>
-                                <p class="text-lg font-semibold text-gray-900 dark:text-white truncate">
-                                    {{ formatCurrency(summary.total_sales) || '₦0' }}
-                                </p>
-                            </div>
-                            <div class="p-3 rounded-lg bg-green-100 dark:bg-green-900 ml-2 flex-shrink-0">
-                                <svg xmlns="http://www.w3.org/2000/svg"
-                                    class="h-6 w-6 text-green-600 dark:text-green-300" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-                                </svg>
-                            </div>
-                        </div>
-                    </div>
-                </div>
                 <!-- Start coding here -->
                 <div class="bg-white dark:bg-gray-800 relative shadow-md sm:rounded-lg overflow-hidden">
-                    <h2 class="p-5 text-lg">All Sales</h2>
+                    <h2 class="p-5 text-lg">Customers</h2>
                     <div
                         class="flex flex-col md:flex-row items-center justify-between space-y-3 md:space-y-0 md:space-x-4 p-4">
                         <div class="w-full md:w-1/2">
-                            <form class="flex items-center" @submit.prevent>
+                            <form class="flex items-center">
                                 <label for="simple-search" class="sr-only">Search</label>
                                 <div class="relative w-full">
                                     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -181,15 +74,23 @@ const statusLabels = {
                                                 clip-rule="evenodd" />
                                         </svg>
                                     </div>
-                                    <input type="text" id="simple-search" v-model="searchQuery"
+                                    <input type="text" id="simple-search"
                                         class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-500 focus:border-primary-500 block w-full pl-10 p-2 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500"
-                                        placeholder="Search">
+                                        placeholder="Search" required="">
                                 </div>
                             </form>
                         </div>
                         <div
                             class="w-full md:w-auto flex flex-col md:flex-row space-y-2 md:space-y-0 items-stretch md:items-center justify-end md:space-x-3 flex-shrink-0">
-
+                            <button type="button" @click="addCustomer"
+                                class="flex items-center justify-center text-white bg-teal-700 hover:bg-teal-800 focus:ring-4 focus:ring-teal-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-teal-600 dark:hover:bg-teal-700 focus:outline-none dark:focus:ring-teal-800">
+                                <svg class="h-3.5 w-3.5 mr-2" fill="currentColor" viewbox="0 0 20 20"
+                                    xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+                                    <path clip-rule="evenodd" fill-rule="evenodd"
+                                        d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" />
+                                </svg>
+                                Add Customer
+                            </button>
                             <div class="flex items-center space-x-3 w-full md:w-auto">
                                 <button id="actionsDropdownButton" data-dropdown-toggle="actionsDropdown"
                                     class="w-full md:w-auto flex items-center justify-center py-2 px-4 text-sm font-medium text-gray-900 focus:outline-none bg-white rounded-lg border border-gray-200 hover:bg-gray-100 hover:text-primary-700 focus:z-10 focus:ring-4 focus:ring-gray-200 dark:focus:ring-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:text-white dark:hover:bg-gray-700"
@@ -283,17 +184,11 @@ const statusLabels = {
                                 class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                                 <tr>
                                     <th scope="col" class="px-4 py-3">#ID</th>
-                                    <th scope="col" class="px-4 py-3">Order No</th>
+                                    <th scope="col" class="px-4 py-3">Name</th>
+                                    <th scope="col" class="px-4 py-3">Email</th>
+                                    <th scope="col" class="px-4 py-3">Phone</th>
+                                    <th scope="col" class="px-4 py-3">Address</th>
 
-                                    <th scope="col" class="px-4 py-3">Status</th>
-                                    <th scope="col" class="px-4 py-3">Item Discount</th>
-                                    <th scope="col" class="px-4 py-3">General Discount</th>
-
-                                    <th scope="col" class="px-4 py-3">Subtotal</th>
-                                    <th scope="col" class="px-4 py-3">Total</th>
-                                    <th scope="col" class="px-4 py-3">Amount Tendered</th>
-                                    <th scope="col" class="px-4 py-3">Change</th>
-                                    <th scope="col" class="px-4 py-3">Refund</th>
                                     <th scope="col" class="px-4 py-3">
                                         <span class="sr-only">Actions</span>
                                     </th>
@@ -301,38 +196,31 @@ const statusLabels = {
                             </thead>
                             <tbody>
 
-                                <tr v-for="order in orderStore.orders.data" :key="order.id"
-                                    @click="navigateToOrder(order.id)"
-                                    class="border-b dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 cursor-pointer transition-colors"
-                                    :class="{ 'opacity-50': orderStore.isLoading }">
-                                    <td class="px-4 py-3">{{ order.id }}</td>
-                                    <td class="px-4 py-3">{{ order.order_no }}</td>
-                                    <td class="px-4 py-3">
-                                        <span
-                                            :class="['text-xs font-medium px-2 py-0.5 rounded', statusColors[order.status] || 'bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-300']">
-                                            {{ statusLabels[order.status] || order.status }}
-                                        </span>
-                                    </td>
-                                    <td class="px-4 py-3">{{ order.item_discounts }}</td>
-                                    <td class="px-4 py-3">{{ order.general_discount }}</td>
-                                    <td class="px-4 py-3">{{ order.subtotal }}</td>
-                                    <td class="px-4 py-3">{{ order.total }}</td>
-                                    <td class="px-4 py-3">{{ order.amount_tendered }}</td>
-                                    <td class="px-4 py-3">{{ order.change_due }}</td>
-                                    <td class="px-4 py-3">{{ order.amount_refunded }}</td>
+                                <tr v-for="customer in customerStore.customers.data" :key="customer.id"
+                                    class="border-b dark:border-gray-700"
+                                    :class="{ 'opacity-50': customerStore.isLoading && customerToDelete === customer.id }">
+                                    <td class="px-4 py-3">{{ customer.id }}</td>
+
+                                    <td class="px-4 py-3">{{ customer.name }}</td>
+                                    <td class="px-4 py-3">{{ customer.email }}</td>
+                                    <td class="px-4 py-3">{{ customer.phone }}</td>
+                                    <td class="px-4 py-3">{{ customer.address }}</td>
 
                                     <td class="px-4 py-3 flex items-center justify-end">
 
                                         <div class="flex items-center">
 
 
-                                            <button @click="navigateToOrder(order.id)"
-                                                class="block py-1 px-4 mr-2 text-white rounded-md bg-teal-500 hover:bg-teal-600 dark:hover:bg-teal-700">
-                                                View
-                                            </button>
+                                            <router-link :to="`/customers/${customer.id}/edit`"
+                                                class="block py-1 px-4 mr-2 text-white rounded-md bg-teal-500 hover:bg-teal-100 dark:hover:bg-teal-600 dark:hover:text-gray-400">
+                                                Edit
+                                            </router-link>
 
                                             <div>
-
+                                                <button @click="confirmDelete(customer.id)"
+                                                    class="block py-1 rounded-md bg-red-800 px-4 text-sm text-white hover:bg-red-300 dark:hover:bg-gray-600 dark:text-gray-200 dark:hover:text-gray-500">
+                                                    Delete
+                                                </button>
                                             </div>
                                         </div>
                                     </td>
@@ -345,25 +233,64 @@ const statusLabels = {
                         <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
                             Showing
                             <span class="font-semibold text-gray-900 dark:text-white">
-                                {{ orderStore.orders.meta.from ?? 0 }} - {{ orderStore.orders.meta.to ?? 0 }}
+                                {{ customerStore.customers.from ?? 0 }} - {{ customerStore.customers.to ?? 0 }}
                             </span>
                             of
                             <span class="font-semibold text-gray-900 dark:text-white">
-                                {{ orderStore.orders.meta.total ?? 0 }}
+                                {{ customerStore.customers.total ?? 0 }}
                             </span>
                         </span>
-                        <TailwindPagination :data="{
-                            current_page: orderStore.orders.meta.current_page,
-                            last_page: orderStore.orders.meta.last_page,
-                            per_page: orderStore.orders.meta.per_page,
-                            total: orderStore.orders.meta.total,
-                            links: orderStore.orders.links
-                        }" @pagination-change-page="fetchNewPage" />
+                        <TailwindPagination :data="customerStore.customers" @pagination-change-page="fetchNewPage" />
                     </nav>
                 </div>
             </div>
 
-
+            <!-- Delete Confirmation Modal -->
+            <div v-if="showDeleteModal"
+                class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div class="bg-white rounded-lg shadow dark:bg-gray-700 p-6 max-w-md w-full">
+                    <div class="flex justify-between items-start mb-4">
+                        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+                            Confirm Deletion
+                        </h3>
+                        <button @click="showDeleteModal = false"
+                            class="text-gray-400 hover:text-gray-900 dark:hover:text-white">
+                            <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path fill-rule="evenodd"
+                                    d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z"
+                                    clip-rule="evenodd"></path>
+                            </svg>
+                        </button>
+                    </div>
+                    <p class="mb-6 text-gray-500 dark:text-gray-400">
+                        Are you sure you want to delete this customer? This action cannot be undone.
+                    </p>
+                    <div class="flex justify-end space-x-3">
+                        <button @click="showDeleteModal = false"
+                            class="px-4 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-200 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 dark:hover:text-white dark:focus:ring-gray-700">
+                            Cancel
+                        </button>
+                        <button @click="deleteCustomer"
+                            class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300 dark:bg-red-500 dark:hover:bg-red-600 dark:focus:ring-red-900"
+                            :disabled="customerStore.isLoading">
+                            <span v-if="!customerStore.isLoading">Delete</span>
+                            <span v-else class="flex items-center">
+                                <svg class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                    xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                                Deleting...
+                            </span>
+                        </button>
+                    </div>
+                </div>
+            </div>
         </section>
     </AppLayout>
+
 </template>
