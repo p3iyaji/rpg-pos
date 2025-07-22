@@ -23,6 +23,7 @@ class Product extends Model
         'price',
         'cost_price',
         'quantity',
+        'reorder_point',
         'is_active',
         'user_id',
     ];
@@ -85,7 +86,7 @@ class Product extends Model
     public function suppliers()
     {
         return $this->belongsToMany(Supplier::class)
-            ->withPivot('supplier_product_code', 'cost_price')
+            ->withPivot('product_sku')
             ->withTimestamps();
     }
 

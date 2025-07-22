@@ -24,6 +24,7 @@ return new class extends Migration {
             $table->decimal('price', 8, 2);
             $table->decimal('cost_price', 8, 2)->nullable();
             $table->integer('quantity')->default(0);
+            $table->integer('reorder_point')->default(0);
             $table->boolean('is_active')->default(true);
             $table->index('sku');
             $table->timestamps();

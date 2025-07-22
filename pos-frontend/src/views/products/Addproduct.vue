@@ -45,6 +45,7 @@ const form = ref({
     price: null,
     cost_price: null,
     quantity: 0,
+    reorder_point: 0,
     is_active: true,
 
 
@@ -145,6 +146,7 @@ const addProduct = async () => {
     formData.append('price', form.value.price);
     formData.append('cost_price', form.value.cost_price);
     formData.append('quantity', form.value.quantity);
+    formData.append('reorder_point', form.value.reorder_point);
     formData.append('is_active', form.value.is_active ? 1 : 0);
 
     const response = await productStore.createProduct(formData);
@@ -353,6 +355,16 @@ const goBack = () => {
                                     Quantity
                                 </label>
                                 <input v-model="form.quantity" type="number" id="quantity" min="0"
+                                    class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
+                            </div>
+
+                            <!-- Reorder point -->
+                            <div>
+                                <label for="reorder_point"
+                                    class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                                    Reorder Point
+                                </label>
+                                <input v-model="form.reorder_point" type="number" id="reorder_point" min="0"
                                     class="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-primary-500 dark:focus:border-primary-500">
                             </div>
 

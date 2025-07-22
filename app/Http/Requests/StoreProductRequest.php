@@ -31,6 +31,7 @@ class StoreProductRequest extends FormRequest
             'price' => 'required|decimal:0,2|min:0',
             'cost_price' => 'required|decimal:0,2|min:0',
             'quantity' => 'required|integer',
+            'reorder_point' => 'nullable|integer',
             'is_active' => 'required|boolean'
         ];
     }

@@ -27,6 +27,10 @@ import OrderDetails from '@/views/sales/OrderDetails.vue';
 import SupplierList from '@/views/suppliers/SupplierList.vue';
 import AddSupplier from '@/views/suppliers/AddSupplier.vue';
 import UpdateSupplier from '@/views/suppliers/UpdateSupplier.vue';
+import PurchaseOrders from '@/views/purchase-orders/PurchaseOrders.vue';
+import PurchaseOrderList from '@/components/purchase-orders/PurchaseOrderList.vue';
+import PurchaseOrderDetail from '@/components/purchase-orders/PurchaseOrderDetail.vue';
+import PurchaseOrderForm from '@/components/purchase-orders/PurchaseOrderForm.vue';
 
 
 const routes = [
@@ -196,7 +200,30 @@ const routes = [
         component: UpdateSupplier,
         meta: { requiresAuth: true }
     },
-
+    // {
+    //     path: '/purchase-orders',
+    //     name: 'purchase-orders',
+    //     component: PurchaseOrders,
+    //     children: [
+    //         {
+    //             path: '',
+    //             name: 'purchase-orders-list',
+    //             component: PurchaseOrderList
+    //         },
+    //         {
+    //             path: 'new',
+    //             name: 'purchase-order-view',
+    //             component: PurchaseOrderDetail,
+    //             props: true
+    //         },
+    //         {
+    //             path: ':id/edit',
+    //             name: 'purchase-order-edit',
+    //             component: PurchaseOrderForm,
+    //             props: route => ({ po: route.params.po })
+    //         }
+    //     ]
+    // }
 
 
 ];

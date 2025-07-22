@@ -745,7 +745,7 @@ const scrollCategories = (direction) => {
 };
 
 const goBack = () => {
-    router.go(-1);
+    router.push('/dashboard');
 }
 
 // Lifecycle

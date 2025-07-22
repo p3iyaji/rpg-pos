@@ -17,10 +17,14 @@ class Supplier extends Model
 
     ];
 
+    protected $casts = [
+        'is_active' => 'boolean',
+    ];
+
     public function products()
     {
         return $this->belongsToMany(Product::class)
-            ->withPivot('supplier_product_code', 'cost_price')
+            ->withPivot('product_sku')
             ->withTimestamps();
     }
 

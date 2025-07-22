@@ -62,6 +62,12 @@ class UnitSeeder extends Seeder
                 'description' => 'Similar to olonka; used for grains, beans, etc',
                 'is_active' => true,
             ],
+            [
+                'name' => 'Carton',
+                'slug' => 'carton',
+                'description' => 'Similar to carton; used for indomie, sugar, etc',
+                'is_active' => true,
+            ],
 
 
         ]);

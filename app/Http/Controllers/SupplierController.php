@@ -10,11 +10,12 @@ class SupplierController extends Controller
 {
     public function index()
     {
-        return Supplier::withCount('products')->get();
+        return Supplier::paginate(50);
     }
 
     public function store(Request $request)
     {
+        //dd($request->all());
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'contact_person' => 'nullable|string|max:255',
@@ -22,15 +23,31 @@ class SupplierController extends Controller
             'phone' => 'nullable|string|max:20',
             'address' => 'nullable|string',
             'terms' => 'nullable|string',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
+            'product_ids' => 'nullable|array',
         ]);
 
-        return Supplier::create($validated);
+        $supplier = Supplier::create($validated);
+
+
+        $supplier->products()->sync($validated['product_ids']);
+
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Supplier added successfully',
+            'supplier' => $supplier->load('products')
+        ], 201);
     }
 
     public function show(Supplier $supplier)
     {
-        return $supplier->load('products');
+        $supplier->load('products');
+
+        return response()->json([
+            'supplier' => $supplier,
+            'products' => $supplier->products
+        ]);
     }
 
     public function update(Request $request, Supplier $supplier)

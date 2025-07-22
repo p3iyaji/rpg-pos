@@ -18,9 +18,13 @@ class PurchaseOrderController extends Controller
 
     public function index()
     {
-        return PurchaseOrder::with(['supplier', 'items.product'])
+        $purchaseOrder = PurchaseOrder::with(['supplier', 'items.product'])
             ->orderBy('order_date', 'desc')
             ->paginate(25);
+        return response()->json([
+            'success' => true,
+            'purchaseOrder' => $purchaseOrder
+        ], 201);
     }
 
     public function store(StorePurchaseOrderRequest $request)
@@ -57,7 +61,11 @@ class PurchaseOrderController extends Controller
             return $po;
         });
 
-        return $po->load(['supplier', 'items.product']);
+        $purchaseOrders = $po->load(['supplier', 'items.product']);
+        return response()->json([
+            'success' => true,
+            'purchaseOrders' => $purchaseOrders
+        ]);
     }
 
     public function show(PurchaseOrder $purchaseOrder)

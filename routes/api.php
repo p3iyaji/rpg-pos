@@ -11,7 +11,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\UnitController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
-
+use App\Http\Controllers\PurchaseOrderController;
 
 
 Route::get('/user', function (Request $request) {
@@ -51,3 +51,4 @@ Route::post('/pos-orders/search', [OrderController::class, 'searchOrders']);
 
 //suppliers
 Route::apiResource('suppliers', SupplierController::class)->middleware('auth:sanctum');
+Route::apiResource('purchase-orders', PurchaseOrderController::class)->middleware('auth:sanctum');

@@ -33,6 +33,12 @@ class CategorySeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'name' => 'Fast Foods',
+                'slug' => 'fast_foods',
+                'description' => '',
+                'is_active' => true,
+            ],
+            [
                 'name' => 'Legumes & Pulses',
                 'slug' => 'legumes-&-pulses',
                 'description' => '',

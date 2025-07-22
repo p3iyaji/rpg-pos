@@ -33,7 +33,7 @@ onMounted(async () => {
     }
 });
 
-const submitForm = async () => {
+const updateCustomer = async () => {
     customerStore.errorMessage = {};
 
     const response = await customerStore.updateCustomer(route.params.id, form.value);
