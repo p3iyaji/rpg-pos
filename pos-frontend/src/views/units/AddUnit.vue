@@ -77,7 +77,7 @@ const goBack = () => {
                     <!-- General error message -->
                     <div v-if="unitStore.errorMessage.general"
                         class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
-                        {{ categoryStore.errorMessage.general[0] }}
+                        {{ unitStore.errorMessage.general[0] }}
                     </div>
 
                     <form @submit.prevent="addUnit">

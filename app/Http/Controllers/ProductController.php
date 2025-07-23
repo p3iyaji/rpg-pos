@@ -122,6 +122,32 @@ class ProductController extends Controller
         ]);
     }
 
+
+    public function topSelling(Request $request)
+    {
+        $validated = $request->validate([
+            'limit' => 'sometimes|integer|min:1|max:10',
+            'days' => 'sometimes|integer|min:1'
+        ]);
+
+        $limit = $validated['limit'] ?? 1;
+        $days = $validated['days'] ?? 30;
+
+        $products = Product::query()
+            ->select('products.*')
+            ->selectRaw('SUM(order_items.quantity) as total_quantity')
+            ->selectRaw('SUM(order_items.total_price) as revenue')
+            ->join('order_items', 'products.id', '=', 'order_items.product_id')
+            ->join('orders', 'order_items.order_id', '=', 'orders.id')
+            ->where('orders.created_at', '>=', now()->subDays($days))
+            ->groupBy('products.id')
+            ->orderByDesc('revenue')
+            ->limit($limit)
+            ->get();
+
+        return response()->json($limit === 1 ? ($products[0] ?? null) : $products);
+    }
+
     /**
      * Remove the specified resource from storage.
      */

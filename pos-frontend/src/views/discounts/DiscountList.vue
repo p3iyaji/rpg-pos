@@ -206,8 +206,24 @@ const deleteDiscount = async () => {
                                     <td class="px-4 py-3">{{ discount.name }}</td>
                                     <td class="px-4 py-3">{{ discount.code }}</td>
                                     <td class="px-4 py-3">{{ discount.value }}</td>
-                                    <td class="px-4 py-3">{{ discount.start_date }}</td>
-                                    <td class="px-4 py-3">{{ discount.end_date }}</td>
+                                    <td class="px-4 py-3">
+                                        {{ new Date(discount.start_date).toLocaleString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: true
+                                        }) }}</td>
+                                    <td class="px-4 py-3">
+                                        {{ new Date(discount.end_date).toLocaleString('en-US', {
+                                            year: 'numeric',
+                                            month: 'short',
+                                            day: 'numeric',
+                                            hour: '2-digit',
+                                            minute: '2-digit',
+                                            hour12: true
+                                        }) }}</td>
                                     <td class="px-4 py-3">{{ discount.is_active }}</td>
                                     <td class="px-4 py-3 flex items-center justify-end">
 

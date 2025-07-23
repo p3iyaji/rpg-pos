@@ -27,10 +27,14 @@ import OrderDetails from '@/views/sales/OrderDetails.vue';
 import SupplierList from '@/views/suppliers/SupplierList.vue';
 import AddSupplier from '@/views/suppliers/AddSupplier.vue';
 import UpdateSupplier from '@/views/suppliers/UpdateSupplier.vue';
-import PurchaseOrders from '@/views/purchase-orders/PurchaseOrders.vue';
-import PurchaseOrderList from '@/components/purchase-orders/PurchaseOrderList.vue';
-import PurchaseOrderDetail from '@/components/purchase-orders/PurchaseOrderDetail.vue';
-import PurchaseOrderForm from '@/components/purchase-orders/PurchaseOrderForm.vue';
+// import PurchaseOrders from '@/views/purchase-orders/PurchaseOrders.vue';
+// import PurchaseOrderList from '@/components/purchase-orders/PurchaseOrderList.vue';
+// import PurchaseOrderDetail from '@/components/purchase-orders/PurchaseOrderDetail.vue';
+// import PurchaseOrderForm from '@/components/purchase-orders/PurchaseOrderForm.vue';
+import ExpenseList from '@/views/expenses/ExpenseList.vue';
+import AddExpense from '@/views/expenses/AddExpense.vue';
+import UpdateExpense from '@/views/expenses/UpdateExpense.vue';
+import ProfitAndLoss from '@/views/reports/ProfitAndLoss.vue';
 
 
 const routes = [
@@ -198,6 +202,30 @@ const routes = [
         path: '/suppliers/:id/edit',
         name: 'update-supplier',
         component: UpdateSupplier,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/expenses',
+        name: 'expenses',
+        component: ExpenseList,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/add-expense',
+        name: 'add-expense',
+        component: AddExpense,
+        meta: { requiresAuth: true },
+    },
+    {
+        path: '/expenses/:id/edit',
+        name: 'update-expense',
+        component: UpdateExpense,
+        meta: { requiresAuth: true }
+    },
+    {
+        path: '/profit-loss-report',
+        name: 'profit-loss-report',
+        component: ProfitAndLoss,
         meta: { requiresAuth: true }
     },
     // {

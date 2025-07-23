@@ -29,6 +29,7 @@ class DatabaseSeeder extends Seeder
             CustomerSeeder::class,
             productSeeder::class,
             DiscountSeeder::class,
+            ExpenseCategorySeeder::class,
         ]);
     }
 }

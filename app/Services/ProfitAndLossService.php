@@ -36,7 +36,7 @@ class ProfitAndLossService
         return Order::query()
             ->whereBetween('created_at', [$startDate, $endDate])
             ->selectRaw($this->getDateSelect($groupBy, 'created_at') . ' as period')
-            ->selectRaw('SUM(total_amount) as revenue')
+            ->selectRaw('SUM(total) as revenue')
             ->groupBy('period')
             ->orderBy('period')
             ->get()
@@ -50,7 +50,7 @@ class ProfitAndLossService
             ->join('products', 'order_items.product_id', '=', 'products.id')
             ->whereBetween('orders.created_at', [$startDate, $endDate])
             ->selectRaw($this->getDateSelect($groupBy, 'orders.created_at') . ' as period')
-            ->selectRaw('SUM(products.cost * order_items.quantity) as cogs')
+            ->selectRaw('SUM(products.cost_price * order_items.quantity) as cogs')
             ->groupBy('period')
             ->orderBy('period')
             ->get()
@@ -71,20 +71,53 @@ class ProfitAndLossService
 
     protected function combineData($sales, $cogs, $expenses, $groupBy)
     {
-        // Create date range for complete periods
-        $periods = CarbonPeriod::create(
-            min($sales->keys()->min(), $cogs->keys()->min(), $expenses->keys()->min()),
-            min($sales->keys()->max(), $cogs->keys()->max(), $expenses->keys()->max()),
-            $groupBy === 'day' ? '1 day' : (
-                $groupBy === 'week' ? '1 week' : (
-                    $groupBy === 'month' ? '1 month' : '1 year'
-                )
+        // Get all available periods from all data sources
+        $allPeriods = array_unique(array_merge(
+            $sales->keys()->all(),
+            $cogs->keys()->all(),
+            $expenses->keys()->all()
+        ));
+
+        // If no data found, return empty result
+        if (empty($allPeriods)) {
+            return [
+                'periods' => [],
+                'totals' => [
+                    'revenue' => 0,
+                    'cogs' => 0,
+                    'gross_profit' => 0,
+                    'expenses' => 0,
+                    'net_profit' => 0,
+                    'gross_margin' => 0,
+                    'net_margin' => 0,
+                ],
+                'group_by' => $groupBy,
+                'start_date' => null,
+                'end_date' => null,
+            ];
+        }
+
+        // Sort periods chronologically
+        sort($allPeriods);
+
+        // Get the min and max dates
+        $startDate = reset($allPeriods);
+        $endDate = end($allPeriods);
+
+        // Create CarbonPeriod based on groupBy
+        $interval = $groupBy === 'day' ? '1 day' : (
+            $groupBy === 'week' ? '1 week' : (
+                $groupBy === 'month' ? '1 month' : '1 year'
             )
         );
 
+        $periods = CarbonPeriod::create(
+            $this->parseDateString($startDate, $groupBy),
+            $this->parseDateString($endDate, $groupBy),
+            $interval
+        );
+
         $results = [];
-        $startDate = '';
-        $endDate = '';
 
         foreach ($periods as $period) {
             $key = $this->formatPeriodKey($period, $groupBy);
@@ -124,6 +157,21 @@ class ProfitAndLossService
             'start_date' => $startDate,
             'end_date' => $endDate,
         ];
+    }
+
+    protected function parseDateString($dateString, $groupBy)
+    {
+        switch ($groupBy) {
+            case 'year':
+                return \Carbon\Carbon::createFromFormat('Y', $dateString)->startOfYear();
+            case 'month':
+                return \Carbon\Carbon::createFromFormat('Y-m', $dateString)->startOfMonth();
+            case 'week':
+                list($year, $week) = explode('-', $dateString);
+                return \Carbon\Carbon::now()->setISODate($year, $week)->startOfWeek();
+            default: // day
+                return \Carbon\Carbon::createFromFormat('Y-m-d', $dateString)->startOfDay();
+        }
     }
 
     protected function getDateSelect($groupBy, $column)

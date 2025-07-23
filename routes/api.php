@@ -13,6 +13,8 @@ use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ExpenseController;
+use App\Http\Controllers\ExpenseCategoryController;
+use App\Http\Controllers\ProfitAndLossController;
 
 
 
@@ -55,3 +57,14 @@ Route::post('/pos-orders/search', [OrderController::class, 'searchOrders']);
 Route::apiResource('suppliers', SupplierController::class)->middleware('auth:sanctum');
 Route::apiResource('purchase-orders', PurchaseOrderController::class)->middleware('auth:sanctum');
 Route::apiResource('expenses', ExpenseController::class)->middleware('auth:sanctum');
+Route::apiResource('expense-categories', ExpenseCategoryController::class)->middleware('auth:sanctum');
+
+Route::middleware('auth:sanctum')->group(function () {
+    // ... other routes
+    Route::get('reports/profit-and-loss', [ProfitAndLossController::class, 'index']);
+    Route::get('reports/profit-summary', [ProfitAndLossController::class, 'summary']);
+    Route::apiResource('expenses', ExpenseController::class);
+    Route::get('orders/summary', [OrderController::class, 'summary']);
+    Route::get('products/top-selling', [ProductController::class, 'topSelling']);
+});
+

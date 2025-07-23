@@ -7,8 +7,9 @@ use Illuminate\Database\Eloquent\Model;
 class Expense extends Model
 {
     protected $fillable = [
+        'name',
         'date',
-        'category',
+        'expense_category_id',
         'description',
         'amount',
         'user_id'

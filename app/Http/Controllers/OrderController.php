@@ -188,6 +188,46 @@ class OrderController extends Controller
             ], 500);
         }
     }
+
+
+    public function summary(Request $request)
+    {
+        try {
+            $validated = $request->validate([
+                'start_date' => 'sometimes|date',
+                'end_date' => 'sometimes|date|required_with:start_date'
+            ]);
+
+            $query = Order::query();
+
+            if (isset($validated['start_date'])) {
+                $query->whereDate('created_at', '>=', $validated['start_date']);
+            }
+
+            if (isset($validated['end_date'])) {
+                $query->whereDate('created_at', '<=', $validated['end_date']);
+            }
+
+            $result = $query->selectRaw('COUNT(*) as order_count')
+                ->selectRaw('SUM(total) as total_sales')
+                ->first();
+
+            return response()->json([
+                'success' => true,
+                'data' => [
+                    'order_count' => (int) ($result->order_count ?? 0),
+                    'total_sales' => (float) ($result->total_sales ?? 0)
+                ]
+            ]);
+
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Error fetching order summary',
+                'error' => $e->getMessage()
+            ], 500);
+        }
+    }
     /**
      * Show the form for editing the specified resource.
      */

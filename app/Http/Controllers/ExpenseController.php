@@ -9,7 +9,8 @@ class ExpenseController extends Controller
 {
     public function index()
     {
-        return Expense::paginate(100);
+        return Expense::with('expenseCategory')->paginate(100);
+
     }
 
 
@@ -20,15 +21,24 @@ class ExpenseController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'expense_category_id' => 'required',
+            'amount' => 'required|decimal:0,2',
+            'description' => 'nullable|string',
+            'date' => 'required|string'
         ]);
         if ($validated) {
             $expense = Expense::create([
                 'name' => $request->name,
+                'description' => $request->description,
+                'date' => $request->date,
+                'expense_category_id' => $request->expense_category_id,
+                'amount' => $request->amount,
+                'user_id' => auth()->user()->id,
 
             ]);
 
             return response()->json([
-                'message' => 'Category created successfully',
+                'message' => 'Expense created successfully',
                 'expense' => $expense,
             ], 201);
         }
@@ -49,9 +59,21 @@ class ExpenseController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255',
+            'expense_category_id' => 'required',
+            'amount' => 'required|decimal:0,2',
+            'description' => 'nullable|string',
+            'date' => 'required|string'
+
 
         ]);
-        $expense->update($validated);
+        $expense->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'date' => $request->date,
+            'expense_category_id' => $request->expense_category_id,
+            'amount' => $request->amount,
+            'user_id' => auth()->user()->id,
+        ]);
         return response()->json($expense);
     }
 
