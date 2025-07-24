@@ -11,26 +11,31 @@ const profitSummary = ref({
 const topProduct = ref({});
 const interval = ref(null);
 
-const formatNumber = (value) => {
-    return new Intl.NumberFormat('en-US', {
+const formatCurrency = (amount) => {
+    const formattedAmount = new Intl.NumberFormat('en-US', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2
-    }).format(value);
-};
+    }).format(amount)
+
+    return `₦${formattedAmount}`;
+}
 
 const fetchData = async () => {
     try {
         // Get today's sales
         const todayResponse = await axios.get('/api/orders/summary', {
             params: {
-                start_date: '2025-07-23'
+                start_date: new Date().toISOString().split('T')[0]
+
             }
         });
         todaySales.value = todayResponse.data.total_sales;
 
         // Get this month's sales
         const monthStart = new Date();
+
         monthStart.setDate(1);
+
         const monthResponse = await axios.get('/api/orders/summary', {
             params: {
                 start_date: monthStart.toISOString().split('T')[0]
@@ -48,7 +53,7 @@ const fetchData = async () => {
 
         // Get top product
         const topProductResponse = await axios.get('/api/products/top-selling');
-        topProduct.value = topProductResponse.data;
+        topProduct.value = topProductResponse.data.data;
 
     } catch (error) {
         console.error('Failed to fetch dashboard data:', error);
@@ -72,22 +77,22 @@ onBeforeUnmount(() => {
         <!-- Today's Sales Card -->
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-gray-700">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Today's Sales</h3>
-            <div class="text-2xl font-bold text-gray-900 dark:text-white">${{ formatNumber(todaySales) }}</div>
+            <div class="text-md font-bold text-gray-900 dark:text-white">{{ formatCurrency(todaySales) }}</div>
         </div>
 
         <!-- Month's Sales Card -->
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-gray-700">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">This Month's Sales</h3>
-            <div class="text-2xl font-bold text-gray-900 dark:text-white">${{ formatNumber(monthSales) }}</div>
+            <div class="text-md font-bold text-gray-900 dark:text-white">{{ formatCurrency(monthSales) }}</div>
         </div>
 
         <!-- Net Profit Card -->
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-gray-700"
             :class="{ 'bg-red-50 dark:bg-red-900/20': profitSummary.net_profit < 0 }">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Net Profit (30 Days)</h3>
-            <div class="text-2xl font-bold"
+            <div class="text-md font-bold"
                 :class="profitSummary.net_profit < 0 ? 'text-red-600 dark:text-red-400' : 'text-gray-900 dark:text-white'">
-                ${{ formatNumber(profitSummary.net_profit) }}
+                {{ formatCurrency(profitSummary.net_profit) }}
             </div>
             <div class="text-sm mt-1"
                 :class="profitSummary.net_margin < 0 ? 'text-red-500 dark:text-red-300' : 'text-gray-500 dark:text-gray-400'">
@@ -98,11 +103,11 @@ onBeforeUnmount(() => {
         <!-- Top Product Card -->
         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow dark:shadow-gray-700">
             <h3 class="text-sm font-medium text-gray-500 dark:text-gray-400 mb-2">Top Selling Product</h3>
-            <div class="text-lg font-semibold text-gray-900 dark:text-white mb-1">
+            <div class="text-md font-semibold text-gray-900 dark:text-white mb-1">
                 {{ topProduct.name || 'N/A' }}
             </div>
-            <div class="text-xl font-bold text-teal-600 dark:text-teal-400">
-                ${{ formatNumber(topProduct.revenue || 0) }}
+            <div class="text-md font-bold text-teal-600 dark:text-teal-400">
+                {{ formatCurrency(topProduct.revenue || 0) }}
             </div>
         </div>
     </div>

@@ -209,15 +209,13 @@ class OrderController extends Controller
             }
 
             $result = $query->selectRaw('COUNT(*) as order_count')
-                ->selectRaw('SUM(total) as total_sales')
+                ->selectRaw('COALESCE(SUM(total), 0) as total_sales')
                 ->first();
 
             return response()->json([
                 'success' => true,
-                'data' => [
-                    'order_count' => (int) ($result->order_count ?? 0),
-                    'total_sales' => (float) ($result->total_sales ?? 0)
-                ]
+                'order_count' => (int) $result->order_count,
+                'total_sales' => (float) $result->total_sales
             ]);
 
         } catch (\Exception $e) {

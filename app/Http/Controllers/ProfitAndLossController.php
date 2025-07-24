@@ -18,8 +18,8 @@ class ProfitAndLossController extends Controller
     public function index(Request $request)
     {
         $validated = $request->validate([
-            'start_date' => 'required|date',
-            'end_date' => 'required|date|after_or_equal:start_date',
+            'start_date' => 'sometimes|date',
+            'end_date' => 'sometimes|date|after_or_equal:start_date',
             'group_by' => 'sometimes|in:day,week,month,year'
         ]);
 
@@ -34,6 +34,7 @@ class ProfitAndLossController extends Controller
 
     public function summary(Request $request)
     {
+
         $validated = $request->validate([
             'start_date' => 'sometimes|date',
             'end_date' => 'sometimes|date|required_with:start_date'
@@ -49,6 +50,7 @@ class ProfitAndLossController extends Controller
             'net_profit' => $report['totals']['net_profit'],
             'gross_margin' => $report['totals']['gross_margin'],
             'net_margin' => $report['totals']['net_margin'],
+            'expenses' => $report['totals']['expenses'],
             'period' => [
                 'start' => $startDate,
                 'end' => $endDate,

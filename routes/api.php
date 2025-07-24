@@ -15,7 +15,7 @@ use App\Http\Controllers\PurchaseOrderController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\ExpenseCategoryController;
 use App\Http\Controllers\ProfitAndLossController;
-
+use App\Http\Controllers\ReportController;
 
 
 Route::get('/user', function (Request $request) {
@@ -31,11 +31,25 @@ Route::post('login', [AuthController::class, 'login'])->name('login');
 Route::post('register', [AuthController::class, 'register'])->name('register');
 Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth:sanctum');
 
+Route::get('products/top-selling', [ProductController::class, 'topSelling'])->middleware('auth:sanctum');
+Route::get('reports/profit-and-loss', [ProfitAndLossController::class, 'index'])->middleware('auth:sanctum');
+Route::get('reports/profit-summary', [ProfitAndLossController::class, 'summary'])->middleware('auth:sanctum');
+Route::get('orders/summary', [OrderController::class, 'summary'])->middleware('auth:sanctum');
+
+Route::get('/reports/sales-data', [ReportController::class, 'salesData'])->middleware('auth:sanctum');
+Route::get('/reports/top-products', [ReportController::class, 'topProducts']);
+
 Route::apiResource('units', UnitController::class)->middleware('auth:sanctum');
 Route::apiResource('categories', CategoryController::class)->middleware('auth:sanctum');
 Route::apiResource('products', ProductController::class)->middleware('auth:sanctum');
 Route::apiResource('discounts', DiscountController::class)->middleware('auth:sanctum');
 Route::post('/pos-discounts', [DiscountController::class, 'store'])->name('pos-discounts');
+
+
+Route::middleware('auth:sanctum')->group(function () {
+
+    Route::apiResource('expenses', ExpenseController::class);
+});
 
 Route::apiResource('customers', CustomerController::class)->middleware('auth:sanctum');
 //pos routes
@@ -59,12 +73,5 @@ Route::apiResource('purchase-orders', PurchaseOrderController::class)->middlewar
 Route::apiResource('expenses', ExpenseController::class)->middleware('auth:sanctum');
 Route::apiResource('expense-categories', ExpenseCategoryController::class)->middleware('auth:sanctum');
 
-Route::middleware('auth:sanctum')->group(function () {
-    // ... other routes
-    Route::get('reports/profit-and-loss', [ProfitAndLossController::class, 'index']);
-    Route::get('reports/profit-summary', [ProfitAndLossController::class, 'summary']);
-    Route::apiResource('expenses', ExpenseController::class);
-    Route::get('orders/summary', [OrderController::class, 'summary']);
-    Route::get('products/top-selling', [ProductController::class, 'topSelling']);
-});
+
 

@@ -26,7 +26,8 @@ class ProfitAndLossService
 
         // Get expenses
         $expenses = $this->getExpensesData($startDate, $endDate, $groupBy);
-
+        // $expenses = Expense::sum('amount');
+        // dd($expenses);
         // Combine all data
         return $this->combineData($sales, $cogs, $expenses, $groupBy);
     }
@@ -34,7 +35,9 @@ class ProfitAndLossService
     protected function getSalesData($startDate, $endDate, $groupBy)
     {
         return Order::query()
-            ->whereBetween('created_at', [$startDate, $endDate])
+            //->whereBetween('created_at', [$startDate, $endDate])
+            ->whereRaw('DATE(created_at) >= ?', [$startDate])
+            ->whereRaw('DATE(created_at) <= ?', [$endDate])
             ->selectRaw($this->getDateSelect($groupBy, 'created_at') . ' as period')
             ->selectRaw('SUM(total) as revenue')
             ->groupBy('period')
@@ -48,7 +51,9 @@ class ProfitAndLossService
         return OrderItem::query()
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('products', 'order_items.product_id', '=', 'products.id')
-            ->whereBetween('orders.created_at', [$startDate, $endDate])
+            //->whereBetween('orders.created_at', [$startDate, $endDate])
+            ->whereRaw('DATE(orders.created_at) >= ?', [$startDate])
+            ->whereRaw('DATE(orders.created_at) <= ?', [$endDate])
             ->selectRaw($this->getDateSelect($groupBy, 'orders.created_at') . ' as period')
             ->selectRaw('SUM(products.cost_price * order_items.quantity) as cogs')
             ->groupBy('period')
@@ -60,9 +65,10 @@ class ProfitAndLossService
     protected function getExpensesData($startDate, $endDate, $groupBy)
     {
         return Expense::query()
-            ->whereBetween('date', [$startDate, $endDate])
+            ->whereRaw('DATE(date) >= ?', [$startDate])
+            ->whereRaw('DATE(date) <= ?', [$endDate])
             ->selectRaw($this->getDateSelect($groupBy, 'date') . ' as period')
-            ->selectRaw('SUM(amount) as expenses')
+            ->selectRaw(expression: 'SUM(amount) as expenses')
             ->groupBy('period')
             ->orderBy('period')
             ->get()

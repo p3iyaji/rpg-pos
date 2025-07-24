@@ -12,6 +12,7 @@ use Illuminate\Support\Str;
 use Storage;
 use Auth;
 use Log;
+use DB;
 
 class ProductController extends Controller
 {
@@ -134,18 +135,32 @@ class ProductController extends Controller
         $days = $validated['days'] ?? 30;
 
         $products = Product::query()
-            ->select('products.*')
-            ->selectRaw('SUM(order_items.quantity) as total_quantity')
-            ->selectRaw('SUM(order_items.total_price) as revenue')
-            ->join('order_items', 'products.id', '=', 'order_items.product_id')
-            ->join('orders', 'order_items.order_id', '=', 'orders.id')
-            ->where('orders.created_at', '>=', now()->subDays($days))
-            ->groupBy('products.id')
-            ->orderByDesc('revenue')
+            ->select([
+                'products.*',
+                'sales.total_quantity',
+                'sales.revenue'
+            ])
+            ->joinSub(function ($query) use ($days) {
+                $query->from('order_items')
+                    ->select([
+                        'product_id',
+                        DB::raw('SUM(quantity) as total_quantity'),
+                        DB::raw('SUM(total_price) as revenue')
+                    ])
+                    ->join('orders', 'order_items.order_id', '=', 'orders.id')
+                    ->where('orders.created_at', '>=', now()->subDays($days))
+                    ->groupBy('product_id');
+            }, 'sales', function ($join) {
+                $join->on('products.id', '=', 'sales.product_id');
+            })
+            ->orderByDesc('sales.revenue')
             ->limit($limit)
             ->get();
-
-        return response()->json($limit === 1 ? ($products[0] ?? null) : $products);
+        // Return consistent response structure
+        return response()->json([
+            'success' => true,
+            'data' => $limit === 1 ? ($products[0] ?? null) : $products
+        ]);
     }
 
     /**
