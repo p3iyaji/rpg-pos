@@ -1,13 +1,13 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, defineAsyncComponent } from 'vue'
 import { useRouter } from 'vue-router';
 import axios from 'axios'
-import Calculator from '@/components/Calculator.vue';
 import Swal from 'sweetalert2'
 
-import PaymentMethod from '@/components/PaymentMethod.vue';
-import ThermalInvoice from '@/components/ThermalInvoice.vue';
-
+// Async components
+const Calculator = defineAsyncComponent(() => import('@/components/Calculator.vue'));
+const PaymentMethod = defineAsyncComponent(() => import('@/components/PaymentMethod.vue'));
+const ThermalInvoice = defineAsyncComponent(() => import('@/components/ThermalInvoice.vue'));
 
 // State
 const products = ref([])
@@ -745,7 +745,7 @@ const scrollCategories = (direction) => {
 };
 
 const goBack = () => {
-    router.push('/dashboard');
+    router.go(-1);
 }
 
 // Lifecycle

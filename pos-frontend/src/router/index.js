@@ -1,262 +1,216 @@
-import Home from '@/views/Home.vue';
-import Login from '@/views/Auth/Login.vue';
-import Register from '@/views/Auth/Register.vue';
-import Dashboard from '@/views/Dashboard.vue'
-import UnitList from '@/views/units/UnitList.vue';
-import AddUnit from '@/views/units/AddUnit.vue';
-
 import { createRouter, createWebHistory } from 'vue-router';
 import { useAuthStore } from '@/stores/authStore';
-import ProductList from '@/views/products/ProductList.vue';
-import UpdateUnit from '@/views/units/UpdateUnit.vue';
-import CategoryList from '@/views/categories/CategoryList.vue';
-import UpdateCategory from '@/views/categories/UpdateCategory.vue';
-import AddCategory from '@/views/categories/AddCategory.vue';
-import Addproduct from '@/views/products/Addproduct.vue';
-import UpdateProduct from '@/views/products/UpdateProduct.vue';
-import ForgotPassword from '@/views/Auth/ForgotPassword.vue';
-import POS from '@/views/products/POS.vue';
-import DiscountList from '@/views/discounts/DiscountList.vue';
-import AddDiscount from '@/views/discounts/AddDiscount.vue';
-import UpdateDiscount from '@/views/discounts/UpdateDiscount.vue';
-import CustomerList from '@/views/customers/CustomerList.vue';
-import AddCustomer from '@/views/customers/AddCustomer.vue';
-import UpdateCustomer from '@/views/customers/UpdateCustomer.vue';
-import OrdersList from '@/views/sales/OrdersList.vue';
-import OrderDetails from '@/views/sales/OrderDetails.vue';
-import SupplierList from '@/views/suppliers/SupplierList.vue';
-import AddSupplier from '@/views/suppliers/AddSupplier.vue';
-import UpdateSupplier from '@/views/suppliers/UpdateSupplier.vue';
-// import PurchaseOrders from '@/views/purchase-orders/PurchaseOrders.vue';
-// import PurchaseOrderList from '@/components/purchase-orders/PurchaseOrderList.vue';
-// import PurchaseOrderDetail from '@/components/purchase-orders/PurchaseOrderDetail.vue';
-// import PurchaseOrderForm from '@/components/purchase-orders/PurchaseOrderForm.vue';
-import ExpenseList from '@/views/expenses/ExpenseList.vue';
-import AddExpense from '@/views/expenses/AddExpense.vue';
-import UpdateExpense from '@/views/expenses/UpdateExpense.vue';
-import ProfitAndLoss from '@/views/reports/ProfitAndLoss.vue';
-
 
 const routes = [
     {
         path: '/',
-        name: 'home',
-        component: Home,
-    },
-    {
-        path: '/dashboard',
         name: 'dashboard',
-        component: Dashboard,
+        component: () => import('@/views/Dashboard.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/login',
         name: 'login',
-        component: Login,
+        component: () => import('@/views/Auth/Login.vue'),
         meta: { requiresGuest: true },
     },
     {
         path: '/register',
         name: 'register',
-        component: Register,
+        component: () => import('@/views/Auth/Register.vue'),
         meta: { requiresGuest: true },
     },
     {
         path: '/forgot-password',
         name: 'forgot-password',
-        component: ForgotPassword,
+        component: () => import('@/views/Auth/ForgotPassword.vue'),
         meta: { requiresGuest: true },
     },
     {
         path: '/404',
         name: '404',
-        component: () => import('../views/errors/404.vue')
+        component: () => import('@/views/errors/404.vue')
     },
     {
         path: '/500',
         name: '500',
-        component: () => import('../views/errors/500.vue')
+        component: () => import('@/views/errors/500.vue')
     },
     {
         path: '/products',
         name: 'products',
-        component: ProductList,
+        component: () => import('@/views/products/ProductList.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/add-product',
         name: 'add-product',
-        component: Addproduct,
+        component: () => import('@/views/products/Addproduct.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/products/:id/edit',
         name: 'upddate-product',
-        component: UpdateProduct
+        component: () => import('@/views/products/UpdateProduct.vue')
     },
     {
         path: '/units',
         name: 'units',
-        component: UnitList,
+        component: () => import('@/views/units/UnitList.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/add-unit',
         name: 'add-unit',
-        component: AddUnit,
+        component: () => import('@/views/units/AddUnit.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/units/:id/edit',
         name: 'update-unit',
-        component: UpdateUnit
+        component: () => import('@/views/units/UpdateUnit.vue'),
+        meta: { requiresAuth: true }
     },
     {
         path: '/categories',
         name: 'categories',
-        component: CategoryList,
+        component: () => import('@/views/categories/CategoryList.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/add-category',
         name: 'add-category',
-        component: AddCategory,
+        component: () => import('@/views/categories/AddCategory.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/categories/:id/edit',
         name: 'update-category',
-        component: UpdateCategory,
+        component: () => import('@/views/categories/UpdateCategory.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/pos',
         name: 'pos',
-        component: POS,
+        component: () => import('@/views/products/POS.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/discounts',
         name: 'discounts',
-        component: DiscountList,
+        component: () => import('@/views/discounts/DiscountList.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/add-discount',
         name: 'add-discount',
-        component: AddDiscount,
+        component: () => import('@/views/discounts/AddDiscount.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/discounts/:id/edit',
         name: 'update-discount',
-        component: UpdateDiscount,
+        component: () => import('@/views/discounts/UpdateDiscount.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/customers',
         name: 'customers',
-        component: CustomerList,
+        component: () => import('@/views/customers/CustomerList.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/add-customer',
         name: 'add-customer',
-        component: AddCustomer,
+        component: () => import('@/views/customers/AddCustomer.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/customers/:id/edit',
         name: 'update-customer',
-        component: UpdateCustomer,
+        component: () => import('@/views/customers/UpdateCustomer.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/sales',
         name: 'sales',
-        component: OrdersList,
+        component: () => import('@/views/sales/OrdersList.vue'),
         meta: { requiresAuth: true }
-
     },
     {
         path: '/orders/:id',
         name: 'order-details',
-        component: OrderDetails,
+        component: () => import('@/views/sales/OrderDetails.vue'),
         meta: { requiresAuth: true },
         props: true
-
     },
     {
         path: '/suppliers',
         name: 'suppliers',
-        component: SupplierList,
+        component: () => import('@/views/suppliers/SupplierList.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/add-supplier',
         name: 'add-supplier',
-        component: AddSupplier,
+        component: () => import('@/views/suppliers/AddSupplier.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/suppliers/:id/edit',
         name: 'update-supplier',
-        component: UpdateSupplier,
+        component: () => import('@/views/suppliers/UpdateSupplier.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/expenses',
         name: 'expenses',
-        component: ExpenseList,
+        component: () => import('@/views/expenses/ExpenseList.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/add-expense',
         name: 'add-expense',
-        component: AddExpense,
+        component: () => import('@/views/expenses/AddExpense.vue'),
         meta: { requiresAuth: true },
     },
     {
         path: '/expenses/:id/edit',
         name: 'update-expense',
-        component: UpdateExpense,
+        component: () => import('@/views/expenses/UpdateExpense.vue'),
         meta: { requiresAuth: true }
     },
     {
         path: '/profit-loss-report',
         name: 'profit-loss-report',
-        component: ProfitAndLoss,
+        component: () => import('@/views/reports/ProfitAndLoss.vue'),
         meta: { requiresAuth: true }
     },
     // {
     //     path: '/purchase-orders',
     //     name: 'purchase-orders',
-    //     component: PurchaseOrders,
+    //     component: () => import('@/views/purchase-orders/PurchaseOrders.vue'),
     //     children: [
     //         {
     //             path: '',
     //             name: 'purchase-orders-list',
-    //             component: PurchaseOrderList
+    //             component: () => import('@/components/purchase-orders/PurchaseOrderList.vue')
     //         },
     //         {
     //             path: 'new',
     //             name: 'purchase-order-view',
-    //             component: PurchaseOrderDetail,
+    //             component: () => import('@/components/purchase-orders/PurchaseOrderDetail.vue'),
     //             props: true
     //         },
     //         {
     //             path: ':id/edit',
     //             name: 'purchase-order-edit',
-    //             component: PurchaseOrderForm,
+    //             component: () => import('@/components/purchase-orders/PurchaseOrderForm.vue'),
     //             props: route => ({ po: route.params.po })
     //         }
     //     ]
     // }
-
-
 ];
-
-
 
 const router = createRouter({
     history: createWebHistory(),
@@ -291,6 +245,5 @@ router.beforeEach(async (to, from, next) => {
 
     next();
 });
-
 
 export default router;

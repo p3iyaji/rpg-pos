@@ -2,7 +2,7 @@
 import AppLayout from '@/components/AppLayout.vue';
 import { ref, onMounted } from 'vue';
 import { saveAs } from 'file-saver';
-import * as XLSX from 'xlsx';
+//import * as XLSX from 'xlsx';
 import axios from 'axios';
 import ProfitLossChart from './ProfitLossChart.vue';
 import { initFlowbite } from 'flowbite';
@@ -47,44 +47,44 @@ const formatCurrency = (amount) => {
     return `₦${formattedAmount}`;
 }
 
-const exportToExcel = () => {
-    if (!report.value) return;
+// const exportToExcel = () => {
+//     if (!report.value) return;
 
-    const exportData = [
-        ['Profit & Loss Report', '', '', '', '', '', '', ''],
-        [`From ${startDate.value} to ${endDate.value}`, '', '', '', '', '', '', ''],
-        [''],
-        ['Period', 'Revenue', 'COGS', 'Gross Profit', 'Gross Margin', 'Expenses', 'Net Profit', 'Net Margin'],
-        ...report.value.periods.map(p => [
-            p.period,
-            p.revenue,
-            p.cogs,
-            p.gross_profit,
-            p.gross_margin,
-            p.expenses,
-            p.net_profit,
-            p.net_margin
-        ]),
-        [''],
-        ['Total',
-            report.value.totals.revenue,
-            report.value.totals.cogs,
-            report.value.totals.gross_profit,
-            report.value.totals.gross_margin,
-            report.value.totals.expenses,
-            report.value.totals.net_profit,
-            report.value.totals.net_margin
-        ]
-    ];
+//     const exportData = [
+//         ['Profit & Loss Report', '', '', '', '', '', '', ''],
+//         [`From ${startDate.value} to ${endDate.value}`, '', '', '', '', '', '', ''],
+//         [''],
+//         ['Period', 'Revenue', 'COGS', 'Gross Profit', 'Gross Margin', 'Expenses', 'Net Profit', 'Net Margin'],
+//         ...report.value.periods.map(p => [
+//             p.period,
+//             p.revenue,
+//             p.cogs,
+//             p.gross_profit,
+//             p.gross_margin,
+//             p.expenses,
+//             p.net_profit,
+//             p.net_margin
+//         ]),
+//         [''],
+//         ['Total',
+//             report.value.totals.revenue,
+//             report.value.totals.cogs,
+//             report.value.totals.gross_profit,
+//             report.value.totals.gross_margin,
+//             report.value.totals.expenses,
+//             report.value.totals.net_profit,
+//             report.value.totals.net_margin
+//         ]
+//     ];
 
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(exportData);
-    XLSX.utils.book_append_sheet(wb, ws, 'Profit and Loss');
+//     const wb = XLSX.utils.book_new();
+//     const ws = XLSX.utils.aoa_to_sheet(exportData);
+//     XLSX.utils.book_append_sheet(wb, ws, 'Profit and Loss');
 
-    const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
-    saveAs(new Blob([wbout], { type: 'application/octet-stream' }),
-        `Profit_and_Loss_${startDate.value}_to_${endDate.value}.xlsx`);
-};
+//     const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+//     saveAs(new Blob([wbout], { type: 'application/octet-stream' }),
+//         `Profit_and_Loss_${startDate.value}_to_${endDate.value}.xlsx`);
+// };
 </script>
 
 <template>
@@ -123,7 +123,7 @@ const exportToExcel = () => {
                                 class="flex items-center justify-center text-white bg-teal-700 hover:bg-teal-800 focus:ring-4 focus:ring-teal-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-teal-600 dark:hover:bg-teal-700 focus:outline-none dark:focus:ring-teal-800">
                                 Generate Report
                             </button>
-                            <button @click="exportToExcel"
+                            <button
                                 class="flex items-center justify-center text-white bg-yellow-500 hover:bg-yellow-600 focus:ring-4 focus:ring-yellow-300 font-medium rounded-lg text-sm px-4 py-2 dark:bg-yellow-600 dark:hover:bg-yellow-700 focus:outline-none dark:focus:ring-yellow-800">
                                 Export to Excel
                             </button>

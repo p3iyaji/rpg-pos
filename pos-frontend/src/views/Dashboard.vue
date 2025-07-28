@@ -123,20 +123,20 @@ const fetchData = async () => {
         await Promise.all(requests)
 
         // Process responses
-        if (responses[0].data.success) todaySales.value = responses[0].data.total_sales;
-        if (responses[1].data.success) monthSales.value = responses[1].data.total_sales;
-        profitSummary.value = responses[2].data || { net_profit: 0, net_margin: 0 };
+        // if (responses[0].data.success) todaySales.value = responses[0].data.total_sales;
+        // if (responses[1].data.success) monthSales.value = responses[1].data.total_sales;
+        // profitSummary.value = responses[2].data || { net_profit: 0, net_margin: 0 };
 
-        const productData = responses[3].data.data || responses[3].data;
-        topProduct.value = {
-            name: productData?.name || 'N/A',
-            revenue: parseFloat(productData?.revenue) || 0,
-            total_quantity: parseInt(productData?.total_quantity) || 0,
-            image: productData?.image || null
-        };
+        // const productData = responses[3].data.data || responses[3].data;
+        // topProduct.value = {
+        //     name: productData?.name || 'N/A',
+        //     revenue: parseFloat(productData?.revenue) || 0,
+        //     total_quantity: parseInt(productData?.total_quantity) || 0,
+        //     image: productData?.image || null
+        // };
 
-        if (responses[4].data.success) renderSalesChart(responses[4].data.data);
-        if (responses[5].data.success) renderProductsChart(responses[5].data.data);
+        // if (responses[4].data.success) renderSalesChart(responses[4].data.data);
+        // if (responses[5].data.success) renderProductsChart(responses[5].data.data);
 
     } catch (error) {
         console.error('Failed to fetch dashboard data:', error)
@@ -278,9 +278,9 @@ onBeforeUnmount(() => {
     if (salesChartRef.value) {
         salesChartRef.value.destroy();
     }
-    if (profitChartRef.value) {
-        profitChartRef.value.destroy();
-    }
+    // if (profitChartRef.value) {
+    //     profitChartRef.value.destroy();
+    // }
     if (productsChartRef.value) productsChartRef.value.destroy();
 
 })

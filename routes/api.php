@@ -27,9 +27,9 @@ Route::get('/hello', function () {
 })->middleware('auth:sanctum');
 
 // Authentication
-Route::post('login', [AuthController::class, 'login'])->name('login');
-Route::post('register', [AuthController::class, 'register'])->name('register');
-Route::post('logout', [AuthController::class, 'logout'])->name('logout')->middleware('auth:sanctum');
+Route::post('login', [AuthController::class, 'login'])->name('api.login');
+Route::post('register', [AuthController::class, 'register'])->name('api.register');
+Route::post('logout', [AuthController::class, 'logout'])->name('api.logout')->middleware('auth:sanctum');
 
 Route::get('products/top-selling', [ProductController::class, 'topSelling'])->middleware('auth:sanctum');
 Route::get('reports/profit-and-loss', [ProfitAndLossController::class, 'index'])->middleware('auth:sanctum');

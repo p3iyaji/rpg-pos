@@ -26,7 +26,7 @@ const handleRegister = async () => {
         password_confirmation: form.value.password_confirmation
     });
     authStore.isAuthenticated;
-    router.push('/dashboard');
+    router.push('/');
 
 }
 

@@ -18,7 +18,7 @@ const handleLogin = async () => {
         email: form.value.email,
         password: form.value.password
     });
-    router.push('/dashboard');
+    router.push('/');
 }
 </script>
 <template>

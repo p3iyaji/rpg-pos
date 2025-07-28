@@ -345,19 +345,19 @@ const statusLabels = {
                         <span class="text-sm font-normal text-gray-500 dark:text-gray-400">
                             Showing
                             <span class="font-semibold text-gray-900 dark:text-white">
-                                {{ orderStore.orders.meta.from ?? 0 }} - {{ orderStore.orders.meta.to ?? 0 }}
+                                {{ orderStore.orders.meta?.from ?? 0 }} - {{ orderStore.orders.meta?.to ?? 0 }}
                             </span>
                             of
                             <span class="font-semibold text-gray-900 dark:text-white">
-                                {{ orderStore.orders.meta.total ?? 0 }}
+                                {{ orderStore.orders.meta?.total ?? 0 }}
                             </span>
                         </span>
                         <TailwindPagination :data="{
-                            current_page: orderStore.orders.meta.current_page,
-                            last_page: orderStore.orders.meta.last_page,
-                            per_page: orderStore.orders.meta.per_page,
-                            total: orderStore.orders.meta.total,
-                            links: orderStore.orders.links
+                            current_page: orderStore.orders.meta?.current_page,
+                            last_page: orderStore.orders.meta?.last_page,
+                            per_page: orderStore.orders.meta?.per_page,
+                            total: orderStore.orders.meta?.total,
+                            links: orderStore.orders?.links
                         }" @pagination-change-page="fetchNewPage" />
                     </nav>
                 </div>
