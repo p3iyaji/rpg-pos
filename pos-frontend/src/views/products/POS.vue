@@ -745,7 +745,7 @@ const scrollCategories = (direction) => {
 };
 
 const goBack = () => {
-    router.go(-1);
+    router.push('/');
 }
 
 // Lifecycle
@@ -774,80 +774,74 @@ onMounted(() => {
             <h1 class="text-3xl text-teal-800 font-bold text-center mb-8">
                 Point of Sale System
             </h1>
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                <!-- product selection area starts -->
-                <div class="lg:col-span-2 bg-white rounded-lg shadow p-6">
-                    <div class="mb-6">
 
-                        <div class="flex justify-between items-center mt-2">
-                            <div class="flex space-x-2">
-                                <button @click="toggleCalculator"
-                                    class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round"
-                                            d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V13.5Zm0 2.25h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V18Zm2.498-6.75h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V13.5Zm0 2.25h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V18Zm2.504-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5Zm0 2.25h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V18Zm2.498-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5ZM8.25 6h7.5v2.25h-7.5V6ZM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.65 4.5 4.757V19.5a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25V4.757c0-1.108-.806-2.057-1.907-2.185A48.507 48.507 0 0 0 12 2.25Z" />
-                                    </svg>
-                                </button>
-                                <button @click="toggleFullScreen"
-                                    class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
-                                        viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                            d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
-                                    </svg>
-                                </button>
-
-                            </div>
-                            <div class="flex space-x-2">
-
-                                <button v-if="draftOrders.length != 0" @click="showDraftOrdersModal = true"
-                                    class="w-32 p-2 bg-blue-500 text-xs text-white py-3 rounded-lg font-bold hover:bg-black transition">
-                                    Load Draft Orders
-                                </button>
-
-                                <button @click="showRefundSearch = true"
-                                    class="w-32 bg-orange-600 text-xs text-white p-2 rounded-lg font-semibold hover:bg-red-700 transition">
-                                    Process Refund
-                                </button>
-                                <button @click="goBack" type="button"
-                                    class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" class="size-6">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
-                                    </svg>
-                                </button>
-                            </div>
+            <!-- Main grid container with flex-col on mobile and flex-row on tablets -->
+            <div class="flex flex-col md:flex-row gap-4">
+                <!-- Product selection area - takes 2/3 width on tablets -->
+                <div class="md:w-[60%] bg-white rounded-lg shadow p-4">
+                    <!-- Header controls -->
+                    <div class="flex justify-between items-center mb-4">
+                        <div class="flex space-x-2">
+                            <button @click="toggleCalculator"
+                                class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15.75 15.75V18m-7.5-6.75h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V13.5Zm0 2.25h.008v.008H8.25v-.008Zm0 2.25h.008v.008H8.25V18Zm2.498-6.75h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V13.5Zm0 2.25h.007v.008h-.007v-.008Zm0 2.25h.007v.008h-.007V18Zm2.504-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5Zm0 2.25h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V18Zm2.498-6.75h.008v.008h-.008v-.008Zm0 2.25h.008v.008h-.008V13.5ZM8.25 6h7.5v2.25h-7.5V6ZM12 2.25c-1.892 0-3.758.11-5.593.322C5.307 2.7 4.5 3.65 4.5 4.757V19.5a2.25 2.25 0 0 0 2.25 2.25h10.5a2.25 2.25 0 0 0 2.25-2.25V4.757c0-1.108-.806-2.057-1.907-2.185A48.507 48.507 0 0 0 12 2.25Z" />
+                                </svg>
+                            </button>
+                            <button @click="toggleFullScreen"
+                                class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4" />
+                                </svg>
+                            </button>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button v-if="draftOrders.length != 0" @click="showDraftOrdersModal = true"
+                                class="w-32 p-2 bg-blue-500 text-xs text-white py-3 rounded-lg font-bold hover:bg-black transition">
+                                Load Draft Orders
+                            </button>
+                            <button @click="showRefundSearch = true"
+                                class="w-32 bg-orange-600 text-xs text-white p-2 rounded-lg font-semibold hover:bg-red-700 transition">
+                                Process Refund
+                            </button>
+                            <button @click="goBack" type="button"
+                                class="p-2 bg-teal-800 text-white rounded-lg hover:bg-teal-700 transition">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="size-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                                </svg>
+                            </button>
                         </div>
                     </div>
-                    <div clas="mb-6">
-                        <input v-model="searchQuery" type="text" placeholder="Search products..." class="w-full p-3 border border-teal-300 rounded-md focus:outline-none focus:ring-2
-                             focus:ring-teal-500">
+
+                    <!-- Search bar -->
+                    <div class="mb-4">
+                        <input v-model="searchQuery" type="text" placeholder="Search products..."
+                            class="w-full p-3 border border-teal-300 rounded-md focus:outline-none focus:ring-2 focus:ring-teal-500">
                     </div>
 
-
-
+                    <!-- Categories scroller -->
                     <div class="mb-6 relative">
-                        <!-- Left arrow (shown when scrollable to left) -->
                         <button
                             class="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white text-teal-800 border border-teal-800 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-teal-600 transition"
                             @click="scrollCategories(-1)">
                             &larr;
                         </button>
-
-                        <!-- Right arrow (shown when scrollable to right) -->
                         <button
                             class="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white text-teal-800 border border-teal-800 rounded-full w-8 h-8 flex items-center justify-center shadow-md hover:bg-teal-600 transition"
                             @click="scrollCategories(1)">
                             &rarr;
                         </button>
-
                         <div ref="categoriesContainer"
                             class="flex rounded-md p-2 space-x-2 p-2 overflow-x-auto pb-2 mt-5 mb-5 border border-teal-800 shadow-lg scrollbar-hide">
                             <button v-for="category in categories" :key="category.id"
                                 @click="filterByCategory(category.id)"
                                 :class="{ 'bg-teal-800 text-white': activeCategory === category.id }"
-                                class="px-4 py-2 rounded-full text-white text-sm text-semibold bg-teal-700 hover:bg-teal-300 transition whitespace-nowrap">
+                                class="category-btn px-3 py-1 rounded-full text-white text-semibold bg-teal-700 hover:bg-teal-300 transition whitespace-nowrap">
                                 {{ category.name }}
                             </button>
                             <button @click="clearCategoryFilter"
@@ -858,25 +852,30 @@ onMounted(() => {
                         </div>
                     </div>
 
-                    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                        <div v-for="product in filteredProducts" :key="product.id" @click="addToCart(product)" class="bg-white border border-teal-200 rounded-lg overflow-hidden shadow-sm
-                        hover:shadow-md transition cursor-pointer">
-                            <div class="h-40 bg-teal-100 flex items-center justify-center overflow-hidden">
+                    <!-- Product grid - responsive columns -->
+                    <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3">
+                        <div v-for="product in filteredProducts" :key="product.id" @click="addToCart(product)"
+                            class="bg-white border border-teal-200 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition cursor-pointer group">
+                            <!-- Image container with hover effect -->
+                            <div
+                                class="h-16 bg-teal-100 flex items-center justify-center overflow-hidden transition-all duration-300 ease-in-out group-hover:h-24">
                                 <img v-if="product.image"
                                     :src="product.image ? `${baseUrl}/storage/${product.image}` : '/images/default-food.png'"
-                                    :alt="product.name" class="object-cover h-full w-full">
+                                    :alt="product.name"
+                                    class="object-cover h-full w-full transition-all duration-300 ease-in-out group-hover:scale-105">
                                 <div v-else class="text-teal-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12" fill="none"
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-10 w-10" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
                                 </div>
                             </div>
-                            <div class="p-3">
-                                <h3 clas="font-semibold text-teal-800 truncate">{{ product.name }}</h3>
-                                <p class="text-teal-800 font-bold">{{ formatCurrency(product.price) }}</p>
-                                <p v-if="product.quantity <= 5" class="text-xs text-red-500">
+                            <div class="p-2 text-center">
+                                <h3 class="product-name font-semibold text-teal-800 truncate">{{ product.name }}</h3>
+                                <p class="product-price text-teal-800 font-semibold">{{ formatCurrency(product.price) }}
+                                </p>
+                                <p v-if="product.quantity <= 5" class="stock-warning text-red-500">
                                     Only {{ product.quantity }} left
                                 </p>
                             </div>
@@ -884,12 +883,8 @@ onMounted(() => {
                     </div>
                 </div>
 
-
-                <!-- product selection area ends -->
-
-                <!-- Cart starts -->
-                <div class="bg-white rounded-lg shadow p-6">
-
+                <!-- Cart area - takes 1/3 width on tablets -->
+                <div class="md:w-[40%] bg-white rounded-lg shadow p-4 sticky top-4 h-fit">
                     <div class="mb-4">
                         <div class="flex justify-between items-center mb-2">
                             <label class="block text-sm font-medium text-teal-700">Customer</label>
@@ -903,7 +898,9 @@ onMounted(() => {
                             </option>
                         </select>
                     </div>
+
                     <h2 class="text-xl font-bold mb-4">Current Order</h2>
+
                     <div v-if="cart.length === 0" class="text-teal-500 text-center py-8">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 mx-auto mb-2" fill="none"
                             viewBox="0 0 24 24" stroke="currentColor">
@@ -914,10 +911,8 @@ onMounted(() => {
                         <p class="text-sm">Select products to add to your order</p>
                     </div>
 
-
-                    <div v-else>
-                        <!-- Discount application section -->
-
+                    <div v-else class="space-y-4">
+                        <!-- Discount section -->
                         <div class="mb-4">
                             <div class="flex justify-between items-center mb-2">
                                 <label class="block text-sm font-medium text-teal-700">Discount</label>
@@ -925,7 +920,6 @@ onMounted(() => {
                                     + Add New Discount
                                 </button>
                             </div>
-                            <!-- Product selection for discount -->
                             <select v-model="selectedProductForDiscount"
                                 class="w-full mb-2 p-2 border border-teal-300 rounded-lg">
                                 <option :value="null">Apply to entire order</option>
@@ -933,10 +927,9 @@ onMounted(() => {
                                     Apply to {{ item.product.name }} only
                                 </option>
                             </select>
-
-                            <div class="flex">
+                            <div class="grid grid-cols-[1fr_auto]">
                                 <input v-model="discountCode" type="text" placeholder="Enter discount code"
-                                    class="flex-1 p-2 border border-teal-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-teal-500">
+                                    class="w-full p-2 border border-teal-300 rounded-l-lg focus:outline-none focus:ring-1 focus:ring-teal-500">
                                 <button @click="applyDiscount"
                                     class="bg-teal-800 text-white px-4 py-2 rounded-r-lg hover:bg-teal-700 transition">
                                     Apply
@@ -945,12 +938,10 @@ onMounted(() => {
                             <p v-if="discountError" class="text-red-600 text-sm mt-1">{{ discountError }}</p>
                         </div>
 
-                        <!-- Applied discounts display -->
+                        <!-- Applied discounts -->
                         <div v-if="Object.keys(appliedProductDiscounts).length > 0 || appliedGeneralDiscount"
                             class="mb-4">
                             <h3 class="text-sm font-medium text-teal-700 mb-2">Applied Discounts</h3>
-
-                            <!-- Product discounts -->
                             <div v-for="(discount, productId) in appliedProductDiscounts" :key="productId"
                                 class="flex justify-between items-center mb-1">
                                 <div>
@@ -970,8 +961,6 @@ onMounted(() => {
                                     </button>
                                 </div>
                             </div>
-
-                            <!-- General discount -->
                             <div v-if="appliedGeneralDiscount" class="flex justify-between items-center">
                                 <div>
                                     <span class="text-green-600">Order Discount:</span>
@@ -990,26 +979,26 @@ onMounted(() => {
                             </div>
                         </div>
 
+                        <!-- Cart items -->
                         <div class="border-b border-teal-200 pb-2 mb-4">
                             <div v-for="(item, index) in cart" :key="index"
-                                class="flex items-center py-2 border-b border-teal-100">
-                                <div class="w-16 h-16 bg-teal-100 rounded-md overflow-hidden mr-3 flex-shrink-0">
+                                class="cart-item flex items-center py-2 border-b border-teal-100">
+                                <div
+                                    class="h-12 w-12 cart-item-image bg-teal-100 rounded-md overflow-hidden mr-3 flex-shrink-0">
                                     <img v-if="item.product.image" :src="`${baseUrl}/storage/${item.product.image}`"
                                         :alt="item.product.name" class="object-cover h-full w-full">
                                     <div v-else class="text-teal-400 h-full flex items-center justify-center">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none"
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none"
                                             viewBox="0 0 24 24" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                         </svg>
                                     </div>
-
                                 </div>
                                 <div class="flex-1">
-                                    <h3 class="font-medium text-teal-800">{{ item.product.name }}</h3>
+                                    <h3 class="tablet-text-sm font-medium text-teal-800">{{ item.product.name }}</h3>
                                     <div class="flex items-center justify-between mt-1">
                                         <div class="flex items-center">
-                                            <!-- Quantity controls -->
                                             <button @click.stop="decreaseQuantity(index)"
                                                 class="w-6 h-6 flex items-center justify-center bg-teal-200 rounded hover:bg-teal-300">
                                                 -
@@ -1019,7 +1008,6 @@ onMounted(() => {
                                                 class="w-6 h-6 flex items-center justify-center bg-teal-200 rounded hover:bg-teal-300">
                                                 +
                                             </button>
-                                            <!-- Remove button -->
                                             <button @click.stop="removeItem(index)"
                                                 class="ml-2 text-red-500 hover:text-red-700">
                                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
@@ -1030,7 +1018,6 @@ onMounted(() => {
                                                 </svg>
                                             </button>
                                         </div>
-                                        <!-- Price display -->
                                         <span class="font-medium text-teal-800">
                                             {{ formatCurrency(item.product.price * item.quantity) }}
                                         </span>
@@ -1040,53 +1027,46 @@ onMounted(() => {
 
                             <!-- Order summary -->
                             <div class="space-y-2 mb-6">
-                                <!-- Subtotal -->
                                 <div class="flex justify-between">
                                     <span>Subtotal:</span>
                                     <span>{{ formatCurrency(subtotal) }}</span>
                                 </div>
-
-                                <!-- Product Discounts -->
                                 <div v-if="productDiscounts > 0" class="flex justify-between text-green-600">
                                     <span>Product Discounts:</span>
                                     <span>-{{ formatCurrency(productDiscounts) }}</span>
                                 </div>
-
-                                <!-- General Discount -->
                                 <div v-if="generalDiscount > 0" class="flex justify-between text-green-600">
                                     <span>Order Discount:</span>
                                     <span>-{{ formatCurrency(generalDiscount) }}</span>
                                 </div>
-
-                                <!-- Total -->
                                 <div class="flex justify-between font-bold text-lg border-t border-gray-200 pt-2 mt-2">
                                     <span>Total:</span>
                                     <span>{{ formatCurrency(total) }}</span>
                                 </div>
                             </div>
+
+                            <!-- Action buttons -->
                             <div class="space-y-3">
                                 <PaymentMethod :total-amount="total" @payment-completed="handlePaymentCompleted" />
-
-                                <button @click="completeOrder" class="w-full bg-teal-800 text-white py-3 rounded-lg *:font-bold
-                                hover:bg-teal-700 transition">
+                                <button @click="completeOrder"
+                                    class="w-full tablet-btn bg-teal-800 text-white py-3 rounded-lg font-bold hover:bg-teal-700 transition">
                                     Complete Order
                                 </button>
                                 <button @click="saveAsDraft"
                                     class="w-full bg-yellow-500 text-white py-3 rounded-lg font-bold hover:bg-yellow-600 transition">
                                     Save as Draft
                                 </button>
-
                                 <button @click="clearCart"
                                     class="w-full bg-gray-200 text-gray-800 py-3 rounded-lg font-bold hover:bg-gray-300 transition">
                                     Clear Cart
                                 </button>
                             </div>
                         </div>
-
                     </div>
                 </div>
             </div>
         </div>
+
         <!-- Customer Modal -->
         <div v-if="showCustomerModal"
             class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
@@ -1387,12 +1367,13 @@ onMounted(() => {
                 </div>
             </div>
         </div>
-    </div>
 
+    </div>
 
 </template>
 
 <style scoped>
+/* Base styles for all devices */
 .scrollbar-hide {
     -ms-overflow-style: none;
     scrollbar-width: none;
@@ -1402,8 +1383,104 @@ onMounted(() => {
     display: none;
 }
 
+/* Product grid text adjustments */
+.product-name {
+    font-size: 0.5rem;
+    /* 12px */
+    line-height: 1.2;
+}
+
+.product-price {
+    font-size: 0.5rem;
+    /* 14px */
+}
+
+/* Tablet-specific adjustments */
+@media (min-width: 768px) {
+    .md\:w-2\/3 {
+        width: 66.666667%;
+    }
+
+    .md\:w-1\/3 {
+        width: 33.333333%;
+    }
+
+    /* Smaller text for tablet */
+    .tablet-text-sm {
+        font-size: 0.875rem;
+        /* 14px */
+    }
+
+    .tablet-text-xs {
+        font-size: 0.75rem;
+        /* 12px */
+    }
+
+    /* Tighter cart item layout */
+    .cart-item {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+    }
+
+    .cart-item-image {
+        width: 2.5rem;
+        height: 2.5rem;
+        margin-right: 0.5rem;
+    }
+
+    /* Adjust category scroller */
+    .category-btn {
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+    }
+
+    /* Smaller buttons */
+    .tablet-btn {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    /* Product grid adjustments */
+    .product-grid {
+        gap: 0.5rem;
+    }
+
+    .product-card {
+        padding: 0.25rem;
+    }
+}
+
+/* Make sure the cart stays visible when scrolling */
+.sticky {
+    position: -webkit-sticky;
+    position: sticky;
+}
+
+/* Product grid columns */
+.grid-cols-2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.sm\:grid-cols-3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.md\:grid-cols-4 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.lg\:grid-cols-5 {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.xl\:grid-cols-6 {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+/* Payment method buttons */
 .payment-method {
     transition: all 0.2s ease;
+    font-size: 0.875rem;
 }
 
 .payment-method.selected {
@@ -1413,5 +1490,10 @@ onMounted(() => {
 
 .payment-method:not(.selected):hover {
     background-color: #e5e7eb;
+}
+
+/* Stock warning text */
+.stock-warning {
+    font-size: 0.65rem;
 }
 </style>

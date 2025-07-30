@@ -44,10 +44,10 @@ const printInvoice = () => {
       <style>
         body {
           font-family: 'Courier New', monospace;
-          font-size: 12px;
+          font-size: 16px;
           width: 80mm;
           margin: 0;
-          padding: 5px;
+          padding: 2px;
         }
         .thermal-invoice {
           width: 100%;
@@ -57,8 +57,8 @@ const printInvoice = () => {
           margin-bottom: 10px;
         }
         .invoice-header h2 {
-          font-size: 14px;
-          margin: 5px 0;
+          font-size: 16px;
+          margin: 2px 0;
         }
         .items-header, .item-row {
           display: flex;
@@ -69,18 +69,22 @@ const printInvoice = () => {
           width: 40%;
           overflow: hidden;
           text-overflow: ellipsis;
+          font-size: 12px;
         }
         .item-qty {
-          width: 15%;
+          width: 5%;
           text-align: right;
+          font-size: 12px;
         }
         .item-price {
-          width: 20%;
-          text-align: right;
-        }
-        .item-total {
           width: 25%;
           text-align: right;
+          font-size: 12px;
+        }
+        .item-total {
+          width: 30%;
+          text-align: right;
+          font-size: 12px;
         }
         .summary {
           margin-top: 10px;
@@ -135,64 +139,78 @@ defineExpose({
       </div>
 
       <div class="max-h-[70vh] overflow-y-auto">
-        <div ref="invoiceContent" class="thermal-invoice p-4">
-          <!-- Invoice content -->
-          <div class="invoice-header">
-            <h2>{{ businessName }}</h2>
+        <!-- Add thermal styles to the preview container -->
+        <div ref="invoiceContent" class="thermal-invoice p-4"
+          style="font-family: 'Courier New', monospace; font-size: 12px; width: 80mm;">
+          <!-- Invoice header with thermal styling -->
+          <div class="invoice-header" style="text-align: center; margin-bottom: 10px;">
+            <h2 style="font-size: 14px; margin: 5px 0;">{{ businessName }}</h2>
             <p>{{ businessAddress }}</p>
             <p>{{ businessPhone }}</p>
-            <p>Order #: {{ order.order_no }}</p>
+            <p style="font-weight: bold;">Order #: {{ order.order_no }}</p>
             <p>Date: {{ formattedDate() }}</p>
           </div>
 
-          <div class="customer-info">
+          <!-- Customer info -->
+          <div class="customer-info" style="margin: 5px 0;">
             <p>Customer: {{ order.customer.name }}</p>
             <p v-if="order.customer.phone">Phone: {{ order.customer.phone }}</p>
           </div>
 
-          <div class="items-header">
-            <span class="item-name">ITEM</span>
-            <span class="item-qty">QTY</span>
-            <span class="item-price">PRICE</span>
-            <span class="item-total">TOTAL</span>
+          <!-- Items header with thermal styling -->
+          <div class="items-header" style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+            <span class="item-name" style="width: 40%; overflow: hidden; text-overflow: ellipsis;">ITEM</span>
+            <span class="item-qty" style="width: 5%; text-align: right;">QTY</span>
+            <span class="item-price" style="width: 25%; text-align: right;">PRICE</span>
+            <span class="item-total" style="width: 30%; text-align: right;">TOTAL</span>
           </div>
 
+          <!-- Items list -->
           <div class="items-list">
-            <div v-for="item in order.items" :key="item.id" class="item-row">
-              <span class="item-name">{{ item.name || `Product ${item.product_id}` }}</span>
-              <span class="item-qty">{{ item.quantity }}</span>
-              <span class="item-price">{{ formatCurrency(item.unit_price) }}</span>
-              <span class="item-total">{{ formatCurrency(item.total) }}</span>
+            <div v-for="item in order.items" :key="item.id" class="item-row"
+              style="display: flex; justify-content: space-between; margin-bottom: 3px;">
+              <span class="item-name" style="width: 40%; overflow: hidden; text-overflow: ellipsis;">{{ item.name ||
+                `Product ${item.product_id}` }}</span>
+              <span class="item-qty" style="width: 5%; text-align: right;">{{ item.quantity }}</span>
+              <span class="item-price" style="width: 25%; text-align: right;">{{ formatCurrency(item.unit_price)
+              }}</span>
+              <span class="item-total" style="width: 30%; text-align: right;">{{ formatCurrency(item.total) }}</span>
             </div>
           </div>
 
-          <div class="summary">
-            <div class="summary-row">
+          <!-- Summary with thermal styling -->
+          <div class="summary" style="margin-top: 10px; border-top: 1px dashed #000; padding-top: 5px;">
+            <div class="summary-row" style="display: flex; justify-content: space-between; margin-bottom: 3px;">
               <span>Subtotal:</span>
               <span>{{ formatCurrency(order.subtotal) }}</span>
             </div>
-            <div v-if="order.product_discounts > 0" class="summary-row">
+            <div v-if="order.product_discounts > 0" class="summary-row"
+              style="display: flex; justify-content: space-between; margin-bottom: 3px;">
               <span>Product Discounts:</span>
               <span>-{{ formatCurrency(order.product_discounts) }}</span>
             </div>
-            <div v-if="order.general_discount > 0" class="summary-row">
+            <div v-if="order.general_discount > 0" class="summary-row"
+              style="display: flex; justify-content: space-between; margin-bottom: 3px;">
               <span>Order Discount:</span>
               <span>-{{ formatCurrency(order.general_discount) }}</span>
             </div>
-            <div class="summary-row total">
+            <div class="summary-row total"
+              style="display: flex; justify-content: space-between; font-weight: bold; border-top: 1px dashed #000; padding-top: 5px;">
               <span>TOTAL:</span>
               <span>{{ formatCurrency(order.total) }}</span>
             </div>
           </div>
 
-          <div class="payment-info">
+          <!-- Payment info -->
+          <div class="payment-info" style="margin: 5px 0;">
             <p>Payment Method: {{ order.payment_method }}</p>
             <p>Amount Tendered: {{ formatCurrency(order.amount_tendered) }}</p>
             <p v-if="order.change_due > 0">Change Due: {{ formatCurrency(order.change_due) }}</p>
           </div>
 
-          <div class="footer">
-            <p>Thank you for your purchase!</p>
+          <!-- Footer -->
+          <div class="footer" style="text-align: center; margin-bottom: 10px;">
+            <!-- <p>Thank you for your purchase!</p> -->
             <p>{{ businessFooter }}</p>
           </div>
         </div>
