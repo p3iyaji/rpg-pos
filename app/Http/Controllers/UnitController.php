@@ -14,7 +14,7 @@ class UnitController extends Controller
      */
     public function index()
     {
-        return Unit::paginate(100);
+        return Unit::OrderBy('name', 'ASC')->paginate(100);
     }
 
     /**

@@ -27,6 +27,12 @@ class UnitSeeder extends Seeder
                 'is_active' => true,
             ],
             [
+                'name' => 'Fingers',
+                'slug' => 'fingers',
+                'description' => 'Standard for some plantain and bananas',
+                'is_active' => true,
+            ],
+            [
                 'name' => 'Derica',
                 'slug' => 'derica',
                 'description' => 'Tomato paste tin used as a unit (≈ 1/4 of an olonka)',
@@ -66,6 +72,24 @@ class UnitSeeder extends Seeder
                 'name' => 'Carton',
                 'slug' => 'carton',
                 'description' => 'Similar to carton; used for indomie, sugar, etc',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Cups',
+                'slug' => 'cups',
+                'description' => 'Used for measuring grains and cereals etc',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Satchet',
+                'slug' => 'sachet',
+                'description' => 'Used for purewater and other little bag items, etc',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'egg',
+                'slug' => 'egg',
+                'description' => 'Used for counting cooked eggs, etc',
                 'is_active' => true,
             ],
 

@@ -17,7 +17,7 @@ class DiscountController extends Controller
      */
     public function index()
     {
-        $discounts = Discount::where('is_active', true)->paginate(50);
+        $discounts = Discount::where('is_active', true)->OrderBy('name', 'ASC')->paginate(50);
         return response()->json([
             'data' => $discounts
         ]);

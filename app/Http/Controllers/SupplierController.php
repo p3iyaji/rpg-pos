@@ -10,7 +10,7 @@ class SupplierController extends Controller
 {
     public function index()
     {
-        return Supplier::paginate(50);
+        return Supplier::OrderBy('name', 'ASC')->paginate(50);
     }
 
     public function store(Request $request)

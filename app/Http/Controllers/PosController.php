@@ -15,13 +15,14 @@ class PosController extends Controller
 {
     public function posCategories()
     {
-        return Category::all();
+        return Category::OrderBy('name', 'ASC')->get();
     }
     public function posProducts()
     {
         return Product::with(['category', 'unit'])
             ->where('is_active', true)
             ->where('quantity', '>', 0)
+            ->OrderBy('name', 'ASC')
             ->get();
     }
 

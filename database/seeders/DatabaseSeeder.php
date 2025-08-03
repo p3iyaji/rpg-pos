@@ -5,6 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Hash;
+
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -30,6 +31,9 @@ class DatabaseSeeder extends Seeder
             productSeeder::class,
             DiscountSeeder::class,
             ExpenseCategorySeeder::class,
+            RolesAndPermissionsSeeder::class,
         ]);
+
+
     }
 }

@@ -45,8 +45,8 @@ class CategorySeeder extends Seeder
                 'is_active' => true,
             ],
             [
-                'name' => 'Oils',
-                'slug' => 'oils',
+                'name' => 'Cooking Oils',
+                'slug' => 'cooking-oils',
                 'description' => '',
                 'is_active' => true,
             ],
@@ -80,7 +80,42 @@ class CategorySeeder extends Seeder
                 'description' => '',
                 'is_active' => true,
             ],
-
+            [
+                'name' => 'Detergents',
+                'slug' => 'detergents',
+                'description' => '',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Bathing Soaps',
+                'slug' => 'bathing-soaps',
+                'description' => '',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Cosmetics',
+                'slug' => 'cosmetics',
+                'description' => '',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Shampoo',
+                'slug' => 'shampoo',
+                'description' => '',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Pops',
+                'slug' => 'pops',
+                'description' => '',
+                'is_active' => true,
+            ],
+            [
+                'name' => 'Snacks',
+                'slug' => 'snacks',
+                'description' => '',
+                'is_active' => true,
+            ],
 
         ]);
 

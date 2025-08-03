@@ -9,7 +9,7 @@ class ExpenseCategoryController extends Controller
 {
     public function index()
     {
-        return ExpenseCategory::paginate(100);
+        return ExpenseCategory::OrderBy('name', 'ASC')->paginate(100);
     }
 
 

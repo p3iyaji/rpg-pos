@@ -21,7 +21,7 @@ class ProductController extends Controller
      */
     public function index()
     {
-        return Product::with('unit', 'category')->paginate(10);
+        return Product::with('unit', 'category')->OrderBy('name', 'ASC')->paginate(100);
     }
 
     /**
